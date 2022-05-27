@@ -5,31 +5,14 @@ This tool allows to open a program "where" the user is.
 
 It detects running instances of the Windows File Explorer.
 From the top-most instance it, fetches the opened path, and any selected files.
-It then calls the configured program, with command line arguments and working directories set based on the fetched information.
+You can use the command line application to retrieve this information.
+Or you can use the GUI application, displaying a tool window to select and open one of up to twelve configured tools.
 
-If no instance of the Windows File Explorer is found, or no valid file system path could be extracted, then default values can be used when calling the configured program.
-
-If no program is configured via command line arguments, a tool window is displayed to select one of up to twelve configured tools to be opened.
-
-
-## Using the Tool Box Window
-
-TODO
-
-
-## Configuring the Tool Box Window
-
-TODO
-
-
-## Using the Command Line Options
-
-TODO
-
-
-## Building the Application
-
-TODO
+Read more about:
+* GUI Application -- TODO
+* GUI Settings Application -- TODO
+* [Command Line Application](./ConsoleApp/README.md)
+* How to build the software -- TODO
 
 
 ## Infos and Contact
