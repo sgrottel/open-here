@@ -49,16 +49,16 @@ $lines2
 
 $m = $lines2 -match "^i\s+\d+\s+explorer\.exe\s*$"
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
-    Write-Host "i found"
+    Write-Host "✅ i found"
 } else {
-    Write-Error "Explorer instance not found"
+    Write-Error "❌ Explorer instance not found"
 }
 
 $m = $lines2 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
-    Write-Host "p matched"
+    Write-Host "✅ p matched"
 } else {
-    Write-Error "No explorer shows the correct path"
+    Write-Error "❌ No explorer shows the correct path"
 }
 
 Write-Host
@@ -85,23 +85,23 @@ $lines3
 
 $m = $lines3 -match "^i\s+\d+\s+explorer\.exe\s*$"
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
-    Write-Host "i found"
+    Write-Host "✅ i found"
 } else {
-    Write-Error "Explorer instance not found"
+    Write-Error "❌ Explorer instance not found"
 }
 
 $m = $lines3 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
-    Write-Host "p matched"
+    Write-Host "✅ p matched"
 } else {
-    Write-Error "No explorer shows the correct path"
+    Write-Error "❌ No explorer shows the correct path"
 }
 
-$m = $lines3 -match ("^f\s+" + [Regex]::Escape($dir + "/Version.h") + "\s*$")
+$m = $lines3 -match ("^s\s+" + [Regex]::Escape("$dir\Version.h") + "\s*$")
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
-    Write-Host "f matched"
+    Write-Host "✅ f matched"
 } else {
-    Write-Error "No explorer shows the correct selected file"
+    Write-Error "❌ No explorer shows the correct selected file"
 }
 
 Write-Host
