@@ -10,9 +10,10 @@ $lines1
 
 Write-Host
 Write-Host "Starting Explorer #1"
-Write-Host "/E, `"$binPath`""
+$dir = Resolve-Path $binPath
+Write-Host "/E, `"$dir`""
 $exps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
-explorer.exe "/E," "$binPath"
+explorer.exe "/E," "$dir"
 for ($i = 0; $i -lt 50; ++$i) {
     $nexps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
     if ($nexps.length -gt $exps.length) {
@@ -20,7 +21,7 @@ for ($i = 0; $i -lt 50; ++$i) {
     }
     Sleep -Milliseconds 100
 }
-Sleep -Milliseconds 500
+Sleep -Milliseconds 2000
 
 Write-Host
 Write-Host "Detecting:"
@@ -29,9 +30,10 @@ $lines2
 
 Write-Host
 Write-Host "Starting Explorer #2"
-Write-Host "/SELECT, `"$repoPath\Version.h`""
+$dir = Resolve-Path $repoPath
+Write-Host "/SELECT, `"$dir\Version.h`""
 $exps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
-explorer.exe "/SELECT," "$repoPath\Version.h"
+explorer.exe "/SELECT," "$dir\Version.h"
 for ($i = 0; $i -lt 50; ++$i) {
     $nexps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
     if ($nexps.length -gt $exps.length) {
@@ -39,7 +41,7 @@ for ($i = 0; $i -lt 50; ++$i) {
     }
     Sleep -Milliseconds 100
 }
-Sleep -Milliseconds 500
+Sleep -Milliseconds 2000
 
 Write-Host
 Write-Host "Detecting:"
