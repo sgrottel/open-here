@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory)][string]$binPath
+    [Parameter(Mandatory)][string]$binPath,
     [Parameter(Mandatory)][string]$repoPath
     )
 
