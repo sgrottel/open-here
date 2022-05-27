@@ -54,7 +54,7 @@ jobs:
       shell: pwsh
       run: |
         $artifactPath = "bin/${{ matrix.platform }}/${{ matrix.configuration }}"
-        if (${{ matrix.platform }} -eq "x86") {
+        if ("${{ matrix.platform }}" -eq "x86") {
         $artifactPath = "bin/Win32/${{ matrix.configuration }}"
         }
         Write-Host "Artifact Path: $artifactPath"
