@@ -1,4 +1,4 @@
 param([Parameter(Mandatory)][string]$binPath)
 
-$lines = .\OpenHereCon.exe
+$lines = $binPath\OpenHereCon.exe
 $lines
