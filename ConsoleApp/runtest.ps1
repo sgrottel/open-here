@@ -83,21 +83,21 @@ Write-Host "Detecting:"
 $lines3 = & "$binPath\OpenHereCon.exe"
 $lines3
 
-$m = $lines2 -match "^i\s+\d+\s+explorer\.exe\s*$"
+$m = $lines3 -match "^i\s+\d+\s+explorer\.exe\s*$"
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
     Write-Host "i found"
 } else {
     Write-Error "Explorer instance not found"
 }
 
-$m = $lines2 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
+$m = $lines3 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
     Write-Host "p matched"
 } else {
     Write-Error "No explorer shows the correct path"
 }
 
-$m = $lines2 -match ("^f\s+" + [Regex]::Escape($dir + "/Version.h") + "\s*$")
+$m = $lines3 -match ("^f\s+" + [Regex]::Escape($dir + "/Version.h") + "\s*$")
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
     Write-Host "f matched"
 } else {
