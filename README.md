@@ -3,7 +3,8 @@ SG Toolbox' Open Here Utility
 
 This tool allows to open a program "where" the user is.
 
-Build status:
+> Build status:
+>
 > Stable Main: [![Main Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/sgrottel/open-here/actions/workflows/build.yml?query=branch%3Amain)&emsp;|&emsp;
 > Development: [![Develop Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/sgrottel/open-here/actions/workflows/build.yml?query=branch%3Adevelop)&emsp;|&emsp;
 > Last Change: [![Last Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg)](https://github.com/sgrottel/open-here/actions/workflows/build.yml)
