@@ -41,7 +41,7 @@ for ($i = 0; $i -lt 50; ++$i) {
     }
     Sleep -Milliseconds 100
 }
-Sleep -Milliseconds 2000
+Sleep -Milliseconds 10000
 
 Write-Host
 Write-Host "Detecting:"
