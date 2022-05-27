@@ -46,14 +46,23 @@ jobs:
     #   working-directory: ${{env.GITHUB_WORKSPACE}}
     #   run: nuget restore ${{env.SOLUTION_FILE_PATH}}
     - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
+      working-directory: ${{ env.GITHUB_WORKSPACE }}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=${{matrix.platform}} ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} ${{ env.SOLUTION_FILE_PATH }}
+    - name: Configure Artifact Path
+      shell: pwsh
+      run: |
+        $artifactPath = "bin/${{ matrix.platform }}/${{ matrix.configuration }}"
+        if (${{ matrix.platform }} -eq "x86") {
+        $artifactPath = "bin/Win32/${{ matrix.configuration }}"
+        }
+        Write-Host "Artifact Path: $artifactPath"
+        Write-Output "ARTIFACT_PATH=$artifactPath" >> $env:GITHUB_ENV
     - name: Upload Artifacts
       # if: ${{ matrix.configuration == 'Release' }}
       uses: actions/upload-artifact@v3.1.0
       with:
-        name: open-here-${{ env.FULL_VERSION_NUMBER }}-${{matrix.platform}}-${{matrix.configuration}}
-        path: bin/${{matrix.platform}}/${{matrix.configuration}}
+        name: open-here-${{ env.FULL_VERSION_NUMBER }}-${{ matrix.platform }}-${{ matrix.configuration }}
+        path: ${{ env.ARTIFACT_PATH }}
         if-no-files-found: error
