@@ -9,12 +9,10 @@ function SelectFiles($filesToSelect)
 {
     foreach ($fileToSelect in $filesToSelect)
     {
-        Write-Host "Sel: $fileToSelect"
         foreach ($window in $shell.Windows())
         {
             foreach ($folderItem in $window.Document.Folder.Items())
             {
-                Write-Host "Item:" $folderItem.Path
                 if ($folderItem.Path -eq $fileToSelect)
                 {
                     $window.Document.SelectItem($folderItem, 1 + 8)
@@ -48,6 +46,13 @@ Write-Host
 Write-Host "Detecting:"
 $lines2 = & "$binPath\OpenHereCon.exe"
 $lines2
+
+$m = $lines2 -match "^i\s+\d+\s+exploorer\.exe\s*$"
+if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
+    Write-Host "i found"
+} else {
+    Write-Error "No explorer instance found!"
+}
 
 Write-Host
 Write-Host "Starting Explorer #2"
