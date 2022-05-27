@@ -3,6 +3,27 @@ param(
     [Parameter(Mandatory)][string]$repoPath
     )
 
+$shell = New-Object -ComObject Shell.Application
+
+function SelectFiles($filesToSelect)
+{
+    foreach ($fileToSelect in $filesToSelect)
+    {
+        Write-Host "Sel: $fileToSelect"
+        foreach ($window in $shell.Windows())
+        {
+            foreach ($folderItem in $window.Document.Folder.Items())
+            {
+                Write-Host "Item:" $folderItem.Path
+                if ($folderItem.Path -eq $fileToSelect)
+                {
+                    $window.Document.SelectItem($folderItem, 1 + 8)
+                }
+            }
+        }
+    }
+}
+
 Write-Host
 Write-Host "Init:"
 $lines1 = & "$binPath\OpenHereCon.exe"
@@ -21,7 +42,7 @@ for ($i = 0; $i -lt 50; ++$i) {
     }
     Sleep -Milliseconds 100
 }
-Sleep -Milliseconds 2000
+Sleep -Milliseconds 500
 
 Write-Host
 Write-Host "Detecting:"
@@ -41,7 +62,9 @@ for ($i = 0; $i -lt 50; ++$i) {
     }
     Sleep -Milliseconds 100
 }
-Sleep -Milliseconds 10000
+Sleep -Milliseconds 500
+SelectFiles(@("$dir\Version.h"))
+Sleep -Milliseconds 500
 
 Write-Host
 Write-Host "Detecting:"
