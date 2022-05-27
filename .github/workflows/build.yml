@@ -18,9 +18,22 @@ jobs:
         platform: [x64, x86]
     runs-on: windows-latest
     steps:
+
     - uses: actions/checkout@v3
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.1
+
+    - name: Prepare Environment
+      shell: pwsh
+      run: |
+        $artifactPath = "bin/${{ matrix.platform }}/${{ matrix.configuration }}"
+        if ("${{ matrix.platform }}" -eq "x86") {
+          $artifactPath = "bin/Win32/${{ matrix.configuration }}"
+        }
+        Write-Host "Artifact Path: $artifactPath"
+        Write-Output "ARTIFACT_PATH=$artifactPath" >> $env:GITHUB_ENV
+
     - name: Inject build version number
       shell: pwsh
       run: |
@@ -45,20 +58,17 @@ jobs:
     # - name: Restore NuGet packages
     #   working-directory: ${{env.GITHUB_WORKSPACE}}
     #   run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
     - name: Build
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} ${{ env.SOLUTION_FILE_PATH }}
-    - name: Configure Artifact Path
+    
+    - name: Test Console App
       shell: pwsh
-      run: |
-        $artifactPath = "bin/${{ matrix.platform }}/${{ matrix.configuration }}"
-        if ("${{ matrix.platform }}" -eq "x86") {
-        $artifactPath = "bin/Win32/${{ matrix.configuration }}"
-        }
-        Write-Host "Artifact Path: $artifactPath"
-        Write-Output "ARTIFACT_PATH=$artifactPath" >> $env:GITHUB_ENV
+      run: ConsoleApp\runtest.ps1 "${{ env.ARTIFACT_PATH }}" "${{ github.workspace }}"
+
     - name: Upload Artifacts
       # if: ${{ matrix.configuration == 'Release' }}
       uses: actions/upload-artifact@v3.1.0
