@@ -1,0 +1,78 @@
+name: MSBuild
+
+on: [ push, pull_request ]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+# permissions:
+#   contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x64, x86]
+    runs-on: windows-latest
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Prepare Environment
+      shell: pwsh
+      run: |
+        $artifactPath = "bin/${{ matrix.platform }}/${{ matrix.configuration }}"
+        if ("${{ matrix.platform }}" -eq "x86") {
+          $artifactPath = "bin/Win32/${{ matrix.configuration }}"
+        }
+        Write-Host "Artifact Path: $artifactPath"
+        Write-Output "ARTIFACT_PATH=$artifactPath" >> $env:GITHUB_ENV
+
+    - name: Inject build version number
+      shell: pwsh
+      run: |
+        $vf = get-content "Version.h" -Raw
+
+        $vf -match '\n#define\s+OPEN_HERE_VER_MAJOR\s+(\d+)\s*\n' | Out-Null
+        $major = $Matches[1]
+        $vf -match '\n#define\s+OPEN_HERE_VER_MINOR\s+(\d+)\s*\n' | Out-Null
+        $minor = $Matches[1]
+        $vf -match '\n#define\s+OPEN_HERE_VER_PATCH\s+(\d+)\s*\n' | Out-Null
+        $patch = $Matches[1]
+
+        $nvf = $vf -replace '(\n#define\s+OPEN_HERE_VER_BUILD\s+)(\d+)(\s*\n)',"`${1}$env:GITHUB_RUN_NUMBER`$3"
+
+        set-content "Version.h" $nvf -force -nonewline
+
+        $version = New-Object System.Version @( $major, $minor, $patch, $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    # - name: Restore NuGet packages
+    #   working-directory: ${{env.GITHUB_WORKSPACE}}
+    #   run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build
+      working-directory: ${{ env.GITHUB_WORKSPACE }}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} ${{ env.SOLUTION_FILE_PATH }}
+    
+    - name: Test Console App
+      shell: pwsh
+      run: ConsoleApp\runtest.ps1 "${{ env.ARTIFACT_PATH }}" "${{ github.workspace }}"
+
+    - name: Upload Artifacts
+      # if: ${{ matrix.configuration == 'Release' }}
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: open-here-${{ env.FULL_VERSION_NUMBER }}-${{ matrix.platform }}-${{ matrix.configuration }}
+        path: ${{ env.ARTIFACT_PATH }}
+        if-no-files-found: error
