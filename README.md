@@ -18,7 +18,7 @@ Read more about:
 * GUI Application -- TODO
 * GUI Settings Application -- TODO
 * [Command Line Application](./ConsoleApp/README.md)
-* How to build the software -- TODO
+* [How to build the Software](./HowtoBuild.md)
 
 
 ## Infos and Contact
