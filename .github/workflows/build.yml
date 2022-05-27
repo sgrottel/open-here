@@ -67,7 +67,7 @@ jobs:
     
     - name: Test Console App
       shell: pwsh
-      run: ConsoleApp\runtest.ps1 "${{ env.ARTIFACT_PATH }}" "${{ env.GITHUB_WORKSPACE }}"
+      run: ConsoleApp\runtest.ps1 "${{ env.ARTIFACT_PATH }}" "${{ github.workspace }}"
 
     - name: Upload Artifacts
       # if: ${{ matrix.configuration == 'Release' }}
