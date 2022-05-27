@@ -47,11 +47,18 @@ Write-Host "Detecting:"
 $lines2 = & "$binPath\OpenHereCon.exe"
 $lines2
 
-$m = $lines2 -match "^i\s+\d+\s+exploorer\.exe\s*$"
+$m = $lines2 -match "^i\s+\d+\s+explorer\.exe\s*$"
 if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
     Write-Host "i found"
 } else {
-    Write-Error "No explorer instance found!"
+    Write-Error "Explorer instance not found"
+}
+
+$m = $lines2 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
+if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
+    Write-Host "p matched"
+} else {
+    Write-Error "No explorer shows the correct path"
 }
 
 Write-Host
@@ -75,3 +82,27 @@ Write-Host
 Write-Host "Detecting:"
 $lines3 = & "$binPath\OpenHereCon.exe"
 $lines3
+
+$m = $lines2 -match "^i\s+\d+\s+explorer\.exe\s*$"
+if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
+    Write-Host "i found"
+} else {
+    Write-Error "Explorer instance not found"
+}
+
+$m = $lines2 -match ("^p\s+" + [Regex]::Escape($dir) + "\s*$")
+if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
+    Write-Host "p matched"
+} else {
+    Write-Error "No explorer shows the correct path"
+}
+
+$m = $lines2 -match ("^f\s+" + [Regex]::Escape($dir + "/Version.h") + "\s*$")
+if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
+    Write-Host "f matched"
+} else {
+    Write-Error "No explorer shows the correct selected file"
+}
+
+Write-Host
+Write-Host "Done."
