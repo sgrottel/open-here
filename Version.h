@@ -17,7 +17,7 @@
 #pragma once
 
 #define OPEN_HERE_VER_MAJOR	0
-#define OPEN_HERE_VER_MINOR	2
+#define OPEN_HERE_VER_MINOR	3
 #define OPEN_HERE_VER_PATCH	0
 #define OPEN_HERE_VER_BUILD	0
 
