@@ -15,40 +15,31 @@
 //
 #pragma once
 
-#include "InstanceInfo.h"
-
-#include <vector>
-#include <memory>
+#include <string>
 
 namespace openhere
 {
-namespace fileexplorerdetector
+namespace toolbox
 {
 
-	class CoInitialize;
-
-	class FileExplorerDetector
+	class Config
 	{
 	public:
 
-		/// <summary>
-		/// Run the detection of file explorer applications
-		/// </summary>
-		/// <returns>
-		///		>0 Number of detected file explorer application instances
-		///		=0 No file explorer applications where found
-		///		<0 An error occured without throwing an exception
-		/// </returns>
-		int Detect();
+		static std::wstring Path(const wchar_t* filename = nullptr);
 
-		std::vector<InstanceInfo> const& GetInstances() const;
+		bool Load();
+		bool Save();
+
+		inline bool GetPlayStartSound() const { return m_playStartSound; }
+		inline void SetPlayStartSound(bool playStartSound) { m_playStartSound = playStartSound; }
 
 	private:
+		constexpr static const wchar_t* configFilename = L"config.json";
+		constexpr static const char* fileTypeMarker = "open-here-config";
 
-		void addWindowsInfo();
+		bool m_playStartSound{ false };
 
-		std::shared_ptr<CoInitialize> coInitialize;
-		std::vector<InstanceInfo> instances;
 	};
 
 }

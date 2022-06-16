@@ -15,40 +15,26 @@
 //
 #pragma once
 
-#include "InstanceInfo.h"
+#include "ToolInfo.h"
 
 #include <vector>
-#include <memory>
 
 namespace openhere
 {
-namespace fileexplorerdetector
+namespace toolbox
 {
 
-	class CoInitialize;
-
-	class FileExplorerDetector
+	class ToolInfoListLoader
 	{
 	public:
 
-		/// <summary>
-		/// Run the detection of file explorer applications
-		/// </summary>
-		/// <returns>
-		///		>0 Number of detected file explorer application instances
-		///		=0 No file explorer applications where found
-		///		<0 An error occured without throwing an exception
-		/// </returns>
-		int Detect();
+		std::vector<ToolInfo> Load();
 
-		std::vector<InstanceInfo> const& GetInstances() const;
+		bool Save(std::vector<ToolInfo> const& list);
 
 	private:
-
-		void addWindowsInfo();
-
-		std::shared_ptr<CoInitialize> coInitialize;
-		std::vector<InstanceInfo> instances;
+		constexpr static const wchar_t* toolsFilename = L"tools.json";
+		constexpr static const char* fileTypeMarker = "open-here-tools";
 	};
 
 }
