@@ -15,40 +15,28 @@
 //
 #pragma once
 
-#include "InstanceInfo.h"
+#include "ToolInfo.h"
 
+#include <string>
 #include <vector>
-#include <memory>
 
 namespace openhere
 {
-namespace fileexplorerdetector
+namespace toolbox
 {
 
-	class CoInitialize;
-
-	class FileExplorerDetector
+	class ToolRunner
 	{
 	public:
 
-		/// <summary>
-		/// Run the detection of file explorer applications
-		/// </summary>
-		/// <returns>
-		///		>0 Number of detected file explorer application instances
-		///		=0 No file explorer applications where found
-		///		<0 An error occured without throwing an exception
-		/// </returns>
-		int Detect();
+		ToolInfo::StartConfig const* SelectStartConfig(ToolInfo const& tool, std::wstring const& path, std::vector<std::wstring> const& files, bool checkPaths);
 
-		std::vector<InstanceInfo> const& GetInstances() const;
+		bool CanStart(ToolInfo const& tool, std::wstring const& path, std::vector<std::wstring> const& files, std::wstring& outErrMsg);
 
-	private:
+		void ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std::wstring const& path, std::vector<std::wstring> const& files);
 
-		void addWindowsInfo();
+		bool Start(ToolInfo::StartConfig const& toolStartConfig);
 
-		std::shared_ptr<CoInitialize> coInitialize;
-		std::vector<InstanceInfo> instances;
 	};
 
 }
