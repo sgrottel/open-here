@@ -17,6 +17,7 @@
 #include "MainWindow.h"
 #include "ToolboxApp.h"
 #include "Toolbox/ToolRunner.h"
+#include "BringHWndToFront.h"
 
 #include <filesystem>
 
@@ -30,6 +31,7 @@ namespace
 	constexpr uint64_t const MAGIC_PROXY_ID = 0x269bf21ab0876a01ull;
 	constexpr wchar_t const* const WINDOW_CLASS_NAME = L"sgrOpenHereToolboxWnd";
 	constexpr uintptr_t const EXIT_DEBOUNCE_TIMER_ID = 0x0815;
+	constexpr uintptr_t const INIT_CHECK_TIMER_ID = 0x0816;
 }
 
 
@@ -343,6 +345,9 @@ void MainWindow::FinializeSetup()
 	SetForegroundWindow(m_hWnd);
 	BringWindowToTop(m_hWnd);
 	ShowWindow(m_hWnd, SW_SHOWNORMAL);
+
+	SetTimer(m_hWnd, INIT_CHECK_TIMER_ID, 250, NULL);
+
 }
 
 
@@ -590,7 +595,12 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_TIMER:
-		if (wParam == EXIT_DEBOUNCE_TIMER_ID) {
+		if (wParam == INIT_CHECK_TIMER_ID)
+		{
+			BringHWndToFront(m_hWnd, FALSE);
+		}
+		else if (wParam == EXIT_DEBOUNCE_TIMER_ID)
+		{
 			KillTimer(m_hWnd, EXIT_DEBOUNCE_TIMER_ID);
 			// close main window & app after timeout
 			PostQuitMessage(0);
