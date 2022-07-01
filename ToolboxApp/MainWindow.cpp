@@ -205,6 +205,11 @@ void MainWindow::SetToolInfos(std::vector<openhere::toolbox::ToolInfo> const& to
 		m_tools[i] = tools[i];
 
 		m_labels[m_buttonTitleLabelIndex[i]].txt = m_tools[i].GetTitle();
+		if (m_labels[m_buttonTitleLabelIndex[i]].txt.empty())
+		{
+			// empty title -> spacer
+			continue;
+		}
 		m_labels[m_buttonTitleLabelIndex[i]].visible = true;
 		m_labels[m_buttonTitleLabelIndex[i]].enabled = false;
 
@@ -636,6 +641,13 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			openhere::toolbox::ToolRunner runner;
 			openhere::toolbox::ToolInfo const& tool = m_tools[wParam - VK_F1];
+
+			if (tool.GetTitle().empty())
+			{
+				// spacer -> no action
+				break;
+			}
+
 			try
 			{
 				openhere::toolbox::ToolInfo::StartConfig const* selCfg = runner.SelectStartConfig(tool, m_path, m_files, true);
