@@ -602,6 +602,7 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_TIMER:
 		if (wParam == INIT_CHECK_TIMER_ID)
 		{
+			KillTimer(m_hWnd, INIT_CHECK_TIMER_ID);
 			BringHWndToFront(m_hWnd, FALSE);
 		}
 		else if (wParam == EXIT_DEBOUNCE_TIMER_ID)
