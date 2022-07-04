@@ -15,7 +15,7 @@
 //
 #include "Toolbox/ToolRunner.h"
 
-#include "Toolbox/VarStringSplitter.h"
+#include "VarStringSplitter.h"
 #include "Utf8Utility.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -165,7 +165,7 @@ void ToolRunner::ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std
 			}
 			else
 			{
-				for (int idx = 0; idx < files.size(); ++idx)
+				for (int idx = 0; idx < static_cast<int>(files.size()); ++idx)
 				{
 					std::wstring tn = L"file" + std::to_wstring(idx);
 					if (n == tn)
@@ -232,7 +232,7 @@ void ToolRunner::ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std
 			}
 			else
 			{
-				for (int idx = 0; idx < files.size(); ++idx)
+				for (int idx = 0; idx < static_cast<int>(files.size()); ++idx)
 				{
 					std::wstring tn = L"file" + std::to_wstring(idx);
 					if (n == tn)
@@ -279,7 +279,7 @@ void ToolRunner::ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std
 			}
 			else
 			{
-				for (int idx = 0; idx < files.size(); ++idx)
+				for (int idx = 0; idx < static_cast<int>(files.size()); ++idx)
 				{
 					std::wstring tn = L"filesafter" + std::to_wstring(idx);
 					if (splits[arrayArgIdx] == tn)

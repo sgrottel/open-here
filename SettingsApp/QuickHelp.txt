@@ -1,0 +1,12 @@
+﻿The left-side list shows the configured tools.
+Those will appear as buttons on the "Open Here" toolbox application window.
+The leftmost icon indicates the final placement.
+
+You can use tools with empty "Title" fields as spacer, to configure the placement of other tools.
+
+You can reorder the tools via the arrow buttons or per drag&drop.
+
+Once you select a tool in the list, the right half of this window will show the tool's configuration.
+This includes the "Title" the "Icon", and the "Start Configurations".
+
+Consult the project website for more information:

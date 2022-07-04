@@ -36,6 +36,12 @@
     <ClCompile Include="VarStringSplitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IconLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IconLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Toolbox\ToolInfoListLoader.h">
@@ -53,7 +59,13 @@
     <ClInclude Include="include\Toolbox\Config.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Toolbox\VarStringSplitter.h">
+    <ClInclude Include="VarStringSplitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Toolbox\IconLoader.h">
+      <Filter>Public Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Toolbox\IconLibrary.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
   </ItemGroup>

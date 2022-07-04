@@ -32,6 +32,14 @@ namespace
 	constexpr wchar_t const* const WINDOW_CLASS_NAME = L"sgrOpenHereToolboxWnd";
 	constexpr uintptr_t const EXIT_DEBOUNCE_TIMER_ID = 0x0815;
 	constexpr uintptr_t const INIT_CHECK_TIMER_ID = 0x0816;
+
+	SIZE GetSize(RECT const& r)
+	{
+		return SIZE{
+			r.right - r.left,
+			r.bottom - r.top
+		};
+	}
 }
 
 
@@ -176,7 +184,8 @@ void MainWindow::SetFileExplorerInstanceInfo(openhere::fileexplorerdetector::Ins
 
 		try
 		{
-			HBITMAP bmp = m_bitmapFactory.LoadExplorerIcon(info->GetInstanceType(), m_path, m_bitmaps[m_explorerBitmapIndex].rect);
+			SIZE size = GetSize(m_bitmaps[m_explorerBitmapIndex].rect);
+			HBITMAP bmp = m_bitmapFactory.LoadExplorerIcon(info->GetInstanceType(), m_path, size);
 			if (bmp)
 			{
 				HBITMAP old = m_bitmaps[m_explorerBitmapIndex].hBmp;
@@ -214,14 +223,15 @@ void MainWindow::SetToolInfos(std::vector<openhere::toolbox::ToolInfo> const& to
 		m_labels[m_buttonTitleLabelIndex[i]].enabled = false;
 
 		m_bitmaps[m_buttonBitmapIndex[i]].enabled = false;
+		SIZE size = GetSize(m_bitmaps[m_buttonBitmapIndex[i]].rect);
 		m_bitmapFactory.Async(
-			m_bitmaps[m_buttonBitmapIndex[i]].rect,
-			[i](BitmapFactory& bf, RECT const& rect, unsigned int idx, void* ctxt) -> HBITMAP {
+			size,
+			[i](BitmapFactory& bf, SIZE const& size, unsigned int idx, void* ctxt) -> HBITMAP {
 				MainWindow* that = static_cast<MainWindow*>(ctxt);
 				return bf.LoadFromIconFile(
 					that->m_tools[i].GetIconFile().c_str(),
 					that->m_tools[i].GetIconID(),
-					rect);
+					size);
 			},
 			&MainWindow::SetBitmapImage,
 			static_cast<unsigned int>(m_buttonBitmapIndex[i]),
@@ -438,7 +448,8 @@ SIZE MainWindow::ComputeLayout(RECT const& desktop)
 		RECT(width - 3 * grid, 0, width, grid + halfGrid),
 		NULL
 		});
-	m_bitmaps.back().hBmp = m_bitmapFactory.MakeExitButton(m_bitmaps.back().rect, m_colors);
+	SIZE size = GetSize(m_bitmaps.back().rect);
+	m_bitmaps.back().hBmp = m_bitmapFactory.MakeExitButton(size, m_colors);
 	m_labels.push_back({
 		escLabel,
 		RECT(width - (3 * grid + escLabelWidth), 0, width - 3 * grid, grid + halfGrid),
@@ -512,21 +523,23 @@ SIZE MainWindow::ComputeLayout(RECT const& desktop)
 		DT_CENTER | DT_SINGLELINE | DT_VCENTER
 		});
 
+	size = GetSize(m_bitmaps[m_explorerBitmapIndex].rect);
 	m_bitmapFactory.Async(
-		m_bitmaps[m_explorerBitmapIndex].rect,
-		[](BitmapFactory& bf, RECT const& rect, unsigned int idx, void* ctxt) -> HBITMAP {
+		size,
+		[](BitmapFactory& bf, SIZE const& size, unsigned int idx, void* ctxt) -> HBITMAP {
 			MainWindow* that = static_cast<MainWindow*>(ctxt);
-			return bf.LoadFromIcon(that->m_app.GetHInstance(), MAKEINTRESOURCEW(100), rect);
+			return bf.LoadFromIcon(that->m_app.GetHInstance(), MAKEINTRESOURCEW(100), size);
 		},
 		& MainWindow::SetBitmapImage,
 		static_cast<unsigned int>(m_explorerBitmapIndex),
 		static_cast<void*>(this));
 
+	size = GetSize(m_bitmaps[settingsImageIndex].rect);
 	m_bitmapFactory.Async(
-		m_bitmaps[settingsImageIndex].rect,
-		[](BitmapFactory& bf, RECT const& rect, unsigned int idx, void* ctxt) -> HBITMAP {
+		size,
+		[](BitmapFactory& bf, SIZE const& size, unsigned int idx, void* ctxt) -> HBITMAP {
 			MainWindow* that = static_cast<MainWindow*>(ctxt);
-			HBITMAP hBmp = bf.LoadFromIcon(that->m_app.GetHInstance(), MAKEINTRESOURCEW(1001), rect);
+			HBITMAP hBmp = bf.LoadFromIcon(that->m_app.GetHInstance(), MAKEINTRESOURCEW(1001), size);
 			bf.MultiplyColor(hBmp, that->m_colors.GetForegroundColor());
 			return hBmp;
 		},
@@ -814,9 +827,25 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 void MainWindow::OpenSettings()
 {
-
-	// TODO: Implement calling the settings app
-
-	// open settings folder as fallback
-	ShellExecuteW(NULL, NULL, openhere::toolbox::Config::Path().c_str(), NULL, NULL, SW_SHOWNORMAL);
+	WCHAR path[MAX_PATH];
+	GetModuleFileNameW(NULL, path, MAX_PATH);
+	std::filesystem::path p{ path };
+	p = p.parent_path() / L"OpenHereSettings.exe";
+	if (std::filesystem::is_regular_file(p))
+	{
+		ShellExecuteW(NULL, NULL, p.wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
+	}
+	else
+	{
+		p = p.parent_path() / L"OpenHereSettings" / L"OpenHereSettings.exe";
+		if (std::filesystem::is_regular_file(p))
+		{
+			ShellExecuteW(NULL, NULL, p.wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
+		}
+		else
+		{
+			// open settings folder as fallback
+			ShellExecuteW(NULL, NULL, openhere::toolbox::Config::Path().c_str(), NULL, NULL, SW_SHOWNORMAL);
+		}
+	}
 }

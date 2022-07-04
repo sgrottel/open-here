@@ -17,7 +17,7 @@
 #include "pch.h"
 #include <CppUnitTest.h>
 
-#include "Toolbox/VarStringSplitter.h"
+#include "Toolbox/../../VarStringSplitter.h"
 
 #include <string>
 #include <array>

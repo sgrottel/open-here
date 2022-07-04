@@ -16,6 +16,8 @@
 #include "pch.h"
 #include "BitmapFactory.h"
 
+#include "Toolbox/IconLibrary.h"
+
 #include <shellapi.h>
 
 #include <vector>
@@ -61,49 +63,13 @@ namespace
 		};
 	}
 
-	SIZE GetIconSize(HICON icon)
-	{
-		ICONINFO ii;
-		if (!GetIconInfo(icon, &ii)) return { 0, 0 };
-		if (ii.hbmMask) DeleteObject(ii.hbmMask);
-		if (!ii.hbmColor) return { 0, 0 };
-		BITMAP bmp;
-		ZeroMemory(&bmp, sizeof(BITMAP));
-		GetObject(ii.hbmColor, sizeof(BITMAP), &bmp);
-		DeleteObject(ii.hbmColor);
-		return { bmp.bmWidth, bmp.bmHeight };
-	}
-
 }
 
 
-HBITMAP BitmapFactory::MakeDemo(RECT const& rect)
+HBITMAP BitmapFactory::MakeExitButton(SIZE const& size, ColorFactory const& colors)
 {
-	const int width = rect.right - rect.left;
-	const int height = rect.bottom - rect.top;
-
-	std::vector<bgra> bmp;
-	bmp.resize(width * height);
-
-	for (int x = 0; x < width; ++x)
-	{
-		for (int y = 0; y < height; ++y)
-		{
-			size_t pos = y * width + x;
-
-			bmp[pos] = bgra{ 8, 0, 0, 16 };
-		}
-	}
-
-	HBITMAP hbmp = CreateBitmap(width, height, 1, 32, bmp.data());
-	return hbmp;
-}
-
-
-HBITMAP BitmapFactory::MakeExitButton(RECT const& rect, ColorFactory const& colors)
-{
-	const int width = rect.right - rect.left;
-	const int height = rect.bottom - rect.top;
+	int const& width = size.cx;
+	int const& height = size.cy;
 
 	std::vector<bgra> bmp;
 	bmp.resize(width * height);
@@ -154,10 +120,10 @@ HBITMAP BitmapFactory::MakeExitButton(RECT const& rect, ColorFactory const& colo
 }
 
 
-HBITMAP BitmapFactory::GetBroken(RECT const& rect)
+HBITMAP BitmapFactory::GetBroken(SIZE const& size)
 {
-	const int width = rect.right - rect.left;
-	const int height = rect.bottom - rect.top;
+	int const& width = size.cx;
+	int const& height = size.cy;
 	std::vector<bgra> bmp;
 	bmp.resize(width * height);
 	auto pos = [&width](int x, int y) { return x + y * width; };
@@ -194,8 +160,8 @@ HBITMAP BitmapFactory::GetBroken(RECT const& rect)
 
 
 void BitmapFactory::Async(
-	RECT const& rect,
-	std::function<HBITMAP(BitmapFactory& bitmapFactory, RECT const& rect, unsigned int param, void* context)> loader,
+	SIZE const& size,
+	std::function<HBITMAP(BitmapFactory& bitmapFactory, SIZE const& size, unsigned int param, void* context)> loader,
 	std::function<void(HBITMAP hBmp, unsigned int param, void* context)> setter,
 	unsigned int param,
 	void* context)
@@ -204,15 +170,15 @@ void BitmapFactory::Async(
 
 	unsigned int jobId = m_nextJobId++;
 
-	std::function<void(void)> job = [this, jobId, rect, loader, setter, param, context]() {
+	std::function<void(void)> job = [this, jobId, size, loader, setter, param, context]() {
 		try
 		{
-			HBITMAP bmp = loader(*this, rect, param, context);
+			HBITMAP bmp = loader(*this, size, param, context);
 			setter(bmp, param, context);
 		}
 		catch (...)
 		{
-			setter(GetBroken(rect), param, context);
+			setter(GetBroken(size), param, context);
 		}
 		std::shared_future<void> sf;
 		{
@@ -226,10 +192,10 @@ void BitmapFactory::Async(
 }
 
 
-HBITMAP BitmapFactory::LoadFromIcon(HINSTANCE hInst, LPWSTR name, RECT const& rect)
+HBITMAP BitmapFactory::LoadFromIcon(HINSTANCE hInst, LPWSTR name, SIZE const& size)
 {
-	int const reqWidth = rect.right - rect.left;
-	int const reqHeight = rect.bottom - rect.top;
+	int const& reqWidth = size.cx;
+	int const& reqHeight = size.cy;
 
 	HICON icon = (HICON)LoadImageW(hInst, name, IMAGE_ICON, reqWidth, reqHeight, 0);
 	if (icon == NULL)
@@ -238,65 +204,6 @@ HBITMAP BitmapFactory::LoadFromIcon(HINSTANCE hInst, LPWSTR name, RECT const& re
 	}
 
 	HBITMAP hbmp = FromIcon(icon, reqWidth, reqHeight);
-
-	DestroyIcon(icon);
-
-	return hbmp;
-}
-
-
-HBITMAP BitmapFactory::LoadFromIconFile(LPCWSTR path, int id, RECT const& rect)
-{
-	int const width = rect.right - rect.left;
-	int const height = rect.bottom - rect.top;
-
-	// try load file, e.g. '.ico' file
-	HICON icon = (HICON)LoadImageW(NULL, path, IMAGE_ICON, width, height, LR_LOADFROMFILE | LR_SHARED);
-	if (icon)
-	{
-		HBITMAP hbmp = FromIcon(icon, width, height);
-		DestroyIcon(icon);
-		return hbmp;
-	}
-
-	// try load as binary resource, e.g. '.exe' or '.dll'
-	HMODULE mod{ NULL };
-	BOOL hasMod = GetModuleHandleExW(0, path, &mod);
-	if (!hasMod || !mod)
-	{
-		mod = LoadLibraryExW(path, NULL, LOAD_LIBRARY_AS_DATAFILE);
-	}
-	if (!mod)
-	{
-		throw std::runtime_error("Unable to load the specified file");
-	}
-
-	icon = static_cast<HICON>(LoadImageW(
-		mod,
-		MAKEINTRESOURCEW(id),
-		IMAGE_ICON,
-		width,
-		height,
-		LR_SHARED));
-	FreeLibrary(mod);
-	if (!icon)
-	{
-		throw std::runtime_error("Icon not found");
-	}
-
-	SIZE size = GetIconSize(icon);
-	if (size.cx > 0 && size.cy > 0 && (size.cx != width || size.cy != height))
-	{
-		HICON scaled = (HICON)CopyImage(icon, IMAGE_ICON, width, height, LR_COPYFROMRESOURCE);
-		if (scaled != icon)
-		{
-			SIZE scaledSize = GetIconSize(scaled);
-			DestroyIcon(icon);
-			icon = scaled;
-		}
-	}
-
-	HBITMAP hbmp = FromIcon(icon, width, height);
 
 	DestroyIcon(icon);
 
@@ -349,43 +256,21 @@ void BitmapFactory::MultiplyColor(HBITMAP hBmp, COLORREF color)
 }
 
 
-HBITMAP BitmapFactory::LoadExplorerIcon(std::wstring const& type, std::wstring const& path, RECT const& rect)
+HBITMAP BitmapFactory::LoadExplorerIcon(std::wstring const& type, std::wstring const& path, SIZE const& size)
 {
 	if (type == L"explorer.exe")
 	{
-		return LoadFolderIcon(path, rect);
+		return LoadFolderIcon(path, size);
 	}
 
-	return LoadFolderIcon(path, rect);
+	return LoadFolderIcon(path, size);
 }
 
 
-HBITMAP BitmapFactory::FromIcon(HICON icon, int width, int height)
+HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, SIZE const& size)
 {
-	std::vector<bgra> bmp;
-	bmp.resize(width * height);
-	for (bgra& c : bmp) c = bgra{ 0, 0, 0, 0 };
-	HBITMAP hbmp = CreateBitmap(width, height, 1, 32, bmp.data());
-
-	HDC hdcScreen = GetDC(NULL);
-	HDC dc = CreateCompatibleDC(hdcScreen);
-	SelectObject(dc, hbmp);
-
-	DrawIconEx(dc, 0, 0, icon, width, height, 0, 0, DI_NORMAL);
-
-	DeleteObject(dc);
-	ReleaseDC(NULL, hdcScreen);
-
-	CheckTransparency(hbmp);
-
-	return hbmp;
-}
-
-
-HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, RECT const& rect)
-{
-	int const width = rect.right - rect.left;
-	int const height = rect.bottom - rect.top;
+	int const& width = size.cx;
+	int const& height = size.cy;
 
 	auto fallback = [=]() {
 		wchar_t pathBuf[MAX_PATH];
@@ -410,136 +295,32 @@ HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, RECT const& rect
 		return fallback();
 	}
 
-	// try load file, e.g. '.ico' file
-	HICON icon = (HICON)LoadImageW(NULL, fileInfo.szDisplayName, IMAGE_ICON, width, height, LR_LOADFROMFILE | LR_SHARED);
-	if (icon)
+	openhere::toolbox::IconLibrary lib;
+	try
 	{
-		HBITMAP hbmp = FromIcon(icon, width, height);
-		DestroyIcon(icon);
-		return hbmp;
+		if (!lib.Open(fileInfo.szDisplayName, width, height))
+		{
+			return fallback();
+		}
+	}
+	catch (...)
+	{
+		return fallback();
 	}
 
-	// try load as binary resource, e.g. '.exe' or '.dll'
-	HMODULE mod{ NULL };
-	BOOL hasMod = GetModuleHandleExW(0, fileInfo.szDisplayName, &mod);
-	if (!hasMod || !mod)
+	uint32_t index = std::abs(fileInfo.iIcon);
+	if (index >= lib.GetCount())
 	{
-		mod = LoadLibraryExW(fileInfo.szDisplayName, NULL, LOAD_LIBRARY_AS_DATAFILE);
+		return fallback();
 	}
-	if (!mod) return fallback();
-
-	struct IconNameSearch {
-		int index;
-		bool found;
-		int id;
-		std::wstring name;
-	};
-	IconNameSearch search{ std::abs(fileInfo.iIcon) };
-
-	EnumResourceNamesW(mod, RT_GROUP_ICON, 
-		[](HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam) -> BOOL {
-			IconNameSearch* search = reinterpret_cast<IconNameSearch*>(lParam);
-			if (search->index > 0)
-			{
-				search->index--;
-				return true;
-			}
-
-			search->found = true;
-
-			if (IS_INTRESOURCE(lpName))
-			{
-				search->id = static_cast<int>(reinterpret_cast<uintptr_t>(lpName));
-				search->name.clear();
-			}
-			else
-			{
-				search->id = -1;
-				search->name = lpName;
-			}
-
-			return false;
-		}, reinterpret_cast<LONG_PTR>(&search));
-
-	if (search.found)
-	{
-		icon = static_cast<HICON>(LoadImageW(
-			mod,
-			(search.id >= 0) ? MAKEINTRESOURCEW(search.id) : search.name.c_str(),
-			IMAGE_ICON,
-			width,
-			height,
-			LR_SHARED));
-	}
-	FreeLibrary(mod);
+	HICON icon = lib.GetIcon(lib.GetId(index), width, height);
 	if (!icon)
 	{
 		return fallback();
 	}
 
-	SIZE size = GetIconSize(icon);
-	if (size.cx > 0 && size.cy > 0 && (size.cx != width || size.cy != height))
-	{
-		HICON scaled = (HICON)CopyImage(icon, IMAGE_ICON, width, height, LR_COPYFROMRESOURCE);
-		if (scaled != icon)
-		{
-			SIZE scaledSize = GetIconSize(scaled);
-			DestroyIcon(icon);
-			icon = scaled;
-		}
-	}
-
 	HBITMAP hbmp = FromIcon(icon, width, height);
-
 	DestroyIcon(icon);
 
 	return hbmp;
-}
-
-
-void BitmapFactory::CheckTransparency(HBITMAP hBmp)
-{
-	BITMAP Bitmap;
-	GetObject(hBmp, sizeof(BITMAP), (LPSTR)&Bitmap);
-
-	BITMAPINFOHEADER  bi;
-	bi.biSize = sizeof(BITMAPINFOHEADER);
-	bi.biWidth = Bitmap.bmWidth;
-	bi.biHeight = Bitmap.bmHeight;
-	bi.biPlanes = 1;
-	bi.biBitCount = 32;
-	bi.biCompression = BI_RGB;
-	bi.biSizeImage = 0;
-	bi.biXPelsPerMeter = 0;
-	bi.biYPelsPerMeter = 0;
-	bi.biClrUsed = 0;
-	bi.biClrImportant = 0;
-
-	HDC hdcScreen = GetDC(NULL);
-	HDC dc = CreateCompatibleDC(hdcScreen);
-	SelectObject(dc, hBmp);
-
-	std::vector<bgra> bmp;
-	bmp.resize(Bitmap.bmWidth * Bitmap.bmHeight);
-
-	GetDIBits(dc, hBmp, 0, Bitmap.bmHeight, bmp.data(), reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS);
-
-	bool fixed = false;
-	for (bgra& c : bmp)
-	{
-		uint8_t l = (std::max)(c.r, (std::max)(c.g, c.b));
-		if (l > c.a)
-		{
-			fixed = true;
-			c.a = 255;
-		}
-	}
-
-	if (fixed)
-	{
-		SetDIBits(dc, hBmp, 0, Bitmap.bmHeight, bmp.data(), reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS);
-	}
-
-	DeleteObject(dc);
-	ReleaseDC(NULL, hdcScreen);
 }

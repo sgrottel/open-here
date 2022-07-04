@@ -13,12 +13,13 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
+using System.Windows;
 
-#pragma once
-
-#define OPEN_HERE_VER_MAJOR	0
-#define OPEN_HERE_VER_MINOR	4
-#define OPEN_HERE_VER_PATCH	0
-#define OPEN_HERE_VER_BUILD	0
-
-#define OPEN_HERE_VER_YEARSTR	"2022"
+[assembly: ThemeInfo(
+    ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
+                                     //(used if a resource is not found in the page,
+                                     // or application resource dictionaries)
+    ResourceDictionaryLocation.SourceAssembly //where the generic resource dictionary is located
+                                              //(used if a resource is not found in the page,
+                                              // app, or any theme specific resource dictionaries)
+)]

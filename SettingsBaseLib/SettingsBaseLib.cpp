@@ -13,12 +13,13 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
+#include "pch.h"
 
-#pragma once
-
-#define OPEN_HERE_VER_MAJOR	0
-#define OPEN_HERE_VER_MINOR	4
-#define OPEN_HERE_VER_PATCH	0
-#define OPEN_HERE_VER_BUILD	0
-
-#define OPEN_HERE_VER_YEARSTR	"2022"
+#include "Config.hpp"
+#include "FileExplorerDetector.hpp"
+#include "FileExplorerInstanceInfo.hpp"
+#include "ToolInfo.hpp"
+#include "ToolInfoListLoader.hpp"
+#include "ToolRunner.hpp"
+#include "IconLibrary.hpp"
+#include "IconLoader.hpp"

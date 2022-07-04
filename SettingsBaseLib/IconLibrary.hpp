@@ -1,0 +1,89 @@
+// Open Here
+// Copyright 2022 SGrottel (https://www.sgrottel.de)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http ://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissionsand
+// limitations under the License.
+//
+#pragma once
+#include "pch.h"
+
+#include "Toolbox/IconLibrary.h"
+
+using msclr::interop::marshal_as;
+
+namespace OpenHere
+{
+	namespace SettingsBase
+	{
+
+		public ref class IconLibrary
+		{
+		public:
+			IconLibrary()
+			{
+				m_lib = new openhere::toolbox::IconLibrary();
+			}
+			~IconLibrary()
+			{
+				if (m_lib != nullptr)
+				{
+					m_lib->Close();
+					delete m_lib;
+					m_lib = nullptr;
+				}
+			}
+
+			bool Open(String^ filename, int width, int height)
+			{
+				return m_lib->Open(marshal_as<std::wstring>(filename).c_str(), width, height);
+			}
+			void Close()
+			{
+				m_lib->Close();
+			}
+
+			UInt32 GetCount()
+			{
+				return m_lib->GetCount();
+			}
+			UInt32 GetId(UInt32 index)
+			{
+				return m_lib->GetId(index);
+			}
+
+		internal:
+
+			HICON GetIcon(UInt32 id, int width, int height)
+			{
+				return m_lib->GetIcon(id, width, height);
+			}
+
+		protected:
+
+			!IconLibrary()
+			{
+				if (m_lib != nullptr)
+				{
+					m_lib->Close();
+					delete m_lib;
+					m_lib = nullptr;
+				}
+			}
+
+		private:
+
+			openhere::toolbox::IconLibrary *m_lib{ nullptr };
+
+		};
+
+	}
+}

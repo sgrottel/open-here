@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
-#include "Toolbox/VarStringSplitter.h"
+#include "VarStringSplitter.h"
 
 #include <cassert>
 

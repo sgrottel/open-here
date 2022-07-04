@@ -17,42 +17,36 @@
 
 #include "ColorFactory.h"
 
+#include "Toolbox/IconLoader.h"
+
 #include <functional>
 #include <mutex>
 #include <unordered_map>
 #include <future>
 
-class BitmapFactory
+class BitmapFactory: public openhere::toolbox::IconLoader
 {
 public:
-	HBITMAP MakeDemo(RECT const& rect);
+	HBITMAP MakeExitButton(SIZE const& size, ColorFactory const& colors);
 
-	HBITMAP MakeExitButton(RECT const& rect, ColorFactory const& colors);
-
-	HBITMAP GetBroken(RECT const& rect);
+	HBITMAP GetBroken(SIZE const& size);
 
 	void Async(
-		RECT const& rect,
-		std::function<HBITMAP(BitmapFactory& bitmapFactory, RECT const& rect, unsigned int param, void* context)> loader,
+		SIZE const& size,
+		std::function<HBITMAP(BitmapFactory& bitmapFactory, SIZE const& size, unsigned int param, void* context)> loader,
 		std::function<void(HBITMAP hBmp, unsigned int param, void* context)> setter,
 		unsigned int param,
 		void* context);
 
-	HBITMAP LoadFromIcon(HINSTANCE hInst, LPWSTR name, RECT const& rect);
-
-	HBITMAP LoadFromIconFile(LPCWSTR path, int id, RECT const& rect);
+	HBITMAP LoadFromIcon(HINSTANCE hInst, LPWSTR name, SIZE const& size);
 
 	void MultiplyColor(HBITMAP hBmp, COLORREF color);
 
-	HBITMAP LoadExplorerIcon(std::wstring const& type, std::wstring const& path, RECT const& rect);
+	HBITMAP LoadExplorerIcon(std::wstring const& type, std::wstring const& path, SIZE const& size);
 
 private:
 
-	HBITMAP FromIcon(HICON icon, int width, int height);
-
-	HBITMAP LoadFolderIcon(std::wstring const& path, RECT const& rect);
-
-	void CheckTransparency(HBITMAP hBmp);
+	HBITMAP LoadFolderIcon(std::wstring const& path, SIZE const& size);
 
 	std::mutex m_jobLock;
 	unsigned int m_nextJobId{ 1 };

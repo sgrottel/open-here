@@ -1,4 +1,4 @@
-// Open Here
+﻿// Open Here
 // Copyright 2022 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,20 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 
-#pragma once
-
-#define OPEN_HERE_VER_MAJOR	0
-#define OPEN_HERE_VER_MINOR	4
-#define OPEN_HERE_VER_PATCH	0
-#define OPEN_HERE_VER_BUILD	0
-
-#define OPEN_HERE_VER_YEARSTR	"2022"
+namespace OpenHere.SettingsApp
+{
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
+    {
+    }
+}

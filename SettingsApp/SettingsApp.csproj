@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>OpenHereSettings</AssemblyName>
+    <RootNamespace>OpenHere.SettingsApp</RootNamespace>
+    <ApplicationIcon>openhere.ico</ApplicationIcon>
+    <Platforms>x64;x86</Platforms>
+    <Product>OpenHere</Product>
+    <Authors>SGrottel</Authors>
+    <Description>Open Here Settings App</Description>
+    <Copyright>Copyright 2022, SGrottel</Copyright>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <Version>0.4.0.0</Version>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="QuickHelp.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="openhere.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="QuickHelp.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SettingsBaseLib\SettingsBaseLib.vcxproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="powershell -executionpolicy unrestricted &quot;$(ProjectDir)postBuildCopy.ps1&quot; &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)bin\$(PlatformName)\$(ConfigurationName)&quot;" />
+  </Target>
+
+</Project>

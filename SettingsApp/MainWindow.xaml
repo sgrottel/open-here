@@ -1,0 +1,249 @@
+﻿<!--
+Open Here
+Copyright 2022 SGrottel (https://www.sgrottel.de)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http ://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissionsand
+limitations under the License.
+-->
+<Window x:Class="OpenHere.SettingsApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OpenHere.SettingsApp"
+        xmlns:settingsBase="clr-namespace:OpenHere.SettingsBase;assembly=OpenHereSettingsBase"
+        mc:Ignorable="d"
+        Title="Open Here Settings" Height="720" Width="1280"
+        Loaded="Window_Loaded"
+        >
+    <Window.Resources>
+
+        <ControlTemplate x:Key="ToolPlacement">
+            <Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Canvas Width="24" Height="16">
+                    <Rectangle Canvas.Left="0" Canvas.Top="0" Width="24" Height="15" Fill="{x:Static SystemColors.ControlTextBrush}" RadiusX="1.25" RadiusY="1.25" />
+                    <Rectangle Canvas.Left="0.5" Canvas.Top="0.5" Width="23" Height="14" Fill="{x:Static SystemColors.ControlLightLightBrush}" RadiusX="1" RadiusY="1" />
+
+                    <Rectangle Canvas.Left="3" Canvas.Top="2" Width="3" Height="3" Fill="{Binding Pos0Brush}"/>
+                    <Rectangle Canvas.Left="8" Canvas.Top="2" Width="3" Height="3" Fill="{Binding Pos1Brush}"/>
+                    <Rectangle Canvas.Left="13" Canvas.Top="2" Width="3" Height="3" Fill="{Binding Pos2Brush}"/>
+                    <Rectangle Canvas.Left="18" Canvas.Top="2" Width="3" Height="3" Fill="{Binding Pos3Brush}"/>
+                    <Rectangle Canvas.Left="3" Canvas.Top="6" Width="3" Height="3" Fill="{Binding Pos4Brush}"/>
+                    <Rectangle Canvas.Left="8" Canvas.Top="6" Width="3" Height="3" Fill="{Binding Pos5Brush}"/>
+                    <Rectangle Canvas.Left="13" Canvas.Top="6" Width="3" Height="3" Fill="{Binding Pos6Brush}"/>
+                    <Rectangle Canvas.Left="18" Canvas.Top="6" Width="3" Height="3" Fill="{Binding Pos7Brush}"/>
+                    <Rectangle Canvas.Left="3" Canvas.Top="10" Width="3" Height="3" Fill="{Binding Pos8Brush}"/>
+                    <Rectangle Canvas.Left="8" Canvas.Top="10" Width="3" Height="3" Fill="{Binding Pos9Brush}"/>
+                    <Rectangle Canvas.Left="13" Canvas.Top="10" Width="3" Height="3" Fill="{Binding Pos10Brush}"/>
+                    <Rectangle Canvas.Left="18" Canvas.Top="10" Width="3" Height="3" Fill="{Binding Pos11Brush}"/>
+                </Canvas>
+            </Viewbox>
+        </ControlTemplate>
+
+        <local:EnumBooleanConverter x:Key="EnumBooleanConverter" />
+        <local:ArrayOfStringConverter x:Key="ArrayOfStringConverter" />
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="4"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <WrapPanel Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                <Button Margin="2,2,0,2" Padding="4,1" Click="ButtonLoad_Click">Load</Button>
+                <Button Margin="0,2" Padding="4,1" Click="ButtonSave_Click">Save</Button>
+                <Separator Margin="2,0"></Separator>
+                <Button Margin="0,2" Padding="4,1" Click="ButtonImport_Click">Import...</Button>
+                <Button Margin="0,2" Padding="4,1" Click="ButtonExport_Click">Export...</Button>
+                <Separator Margin="2,0"></Separator>
+                <Button Margin="0,2" Padding="4,1" Click="ButtonAddTool_Click">Add Tool</Button>
+                <Button Name="ButtonRemoveTool" Margin="0,2" Padding="4,1" Click="ButtonRemoveTool_Click">Remove Tool</Button>
+            </WrapPanel>
+
+            <ListView Name="ToolsList" Grid.Row="1" ItemsSource="{Binding Tools}" SelectionMode="Single" SelectionChanged="ToolsList_SelectionChanged"
+                      HorizontalContentAlignment="Stretch"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      PreviewMouseLeftButtonDown="ToolsList_PreviewMouseLeftButtonDown"
+                      Drop="ToolsList_Drop">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Position visualization -->
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Position}"/>
+                            <ContentControl Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" Width="48" Height="32"
+                                            Template="{Binding Source={StaticResource ToolPlacement}}" />
+
+                            <!-- Icon -->
+                            <Image Grid.Column="1" Grid.RowSpan="3" Width="48" Height="48" Margin="4,0" Source="{Binding Icon}" />
+
+                            <!-- Info -->
+                            <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding Title}" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding Description, Mode=OneWay}"/>
+                            <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal">
+                                <Button Margin="1,2" Padding="3,0" IsEnabled="{Binding CanGoUp}" Click="ButtonToolToTop_Click" FontFamily="WingDings 3">+</Button>
+                                <Button Margin="1,2" Padding="3,0" IsEnabled="{Binding CanGoUp}" Click="ButtonToolUp_Click" FontFamily="WingDings 3">#</Button>
+                                <Button Margin="1,2" Padding="3,0" IsEnabled="{Binding CanGoDown}" Click="ButtonToolDown_Click" FontFamily="WingDings 3">$</Button>
+                                <Button Margin="1,2" Padding="3,0" IsEnabled="{Binding CanGoDown}" Click="ButtonToolToBottom_Click" FontFamily="WingDings 3">,</Button>
+                            </StackPanel>
+
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"></GridSplitter>
+
+        <TabControl Grid.Column="2">
+            <TabItem Name="ToolConfigTab" Header="Tool Configuration" DataContext="{Binding SelectedItem, ElementName=ToolsList, Mode=OneWay}">
+                <ScrollViewer>
+                    <Grid VerticalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0">Title</Label>
+                        <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Label Grid.Row="1">Icon</Label>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CombinedIcon, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Grid.Row="1" Grid.Column="2" Margin="2,2,0,2" Padding="4,1" Click="ButtonBrowseToolIcon_Click">...</Button>
+
+                        <Label Grid.Row="2">Start Configs:</Label>
+                        <WrapPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <Button Margin="0,2" Padding="4,1" Click="ButtonAddStartConfig_Click">Add Config</Button>
+                            <Button Name="ButtonRemoveStartConfig" Margin="0,2" Padding="4,1" Click="ButtonRemoveStartConfig_Click">Remove Config</Button>
+                            <Separator Margin="2,0"></Separator>
+                            <Button Name="ButtonStartConfigToTop" Margin="0,2" Padding="4,1" Click="ButtonStartConfigToTop_Click" FontFamily="WingDings 3">+</Button>
+                            <Button Name="ButtonStartConfigUp" Margin="0,2" Padding="4,1" Click="ButtonStartConfigUp_Click" FontFamily="WingDings 3">#</Button>
+                            <Button Name="ButtonStartConfigDown" Margin="0,2" Padding="4,1" Click="ButtonStartConfigDown_Click" FontFamily="WingDings 3">$</Button>
+                            <Button Name="ButtonStartConfigToBottom" Margin="0,2" Padding="4,1" Click="ButtonStartConfigToBottom_Click" FontFamily="WingDings 3">,</Button>
+                        </WrapPanel>
+
+                        <ListView Name="StartConfigList" Grid.Row="3" Grid.ColumnSpan="3" VerticalAlignment="Stretch"
+                                  HorizontalContentAlignment="Stretch"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  ItemsSource="{Binding StartConfigs}"
+                                  SelectionMode="Single" SelectionChanged="StartConfigList_SelectionChanged"
+                                  PreviewMouseLeftButtonDown="StartConfigList_PreviewMouseLeftButtonDown" Drop="StartConfigList_Drop">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,4,0">Executable</TextBlock>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Executable, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button Grid.Row="0" Grid.Column="2" Margin="2,0,0,0" Padding="4,1" Click="ButtonToolStartConfigExecutableBrowse_Click">...</Button>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,4,0">Arguments</TextBlock>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                                 TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible"
+                                                 Text="{Binding Arguments, Converter={StaticResource ArrayOfStringConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                                 />
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,4,0">Working Directory</TextBlock>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Button Grid.Row="2" Grid.Column="2" Margin="2,0,0,0" Padding="4,1" Click="ButtonToolStartConfigWorkingDirectoryBrowse_Click">...</Button>
+
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,4,0">Path Requirement</TextBlock>
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2">
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding PathRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolPathRequirement.DontCare}}">Don't Care</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding PathRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolPathRequirement.Required}}">A valid Path be selected</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding PathRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolPathRequirement.RequiredNull}}">No Path must be selected</RadioButton>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,4,0">Files Requirement</TextBlock>
+                                        <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2">
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding FilesRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolFilesRequirement.DontCare}}">Don't Care</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding FilesRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolFilesRequirement.RequireOne}}">One File must be selected</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding FilesRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolFilesRequirement.RequireOneOrMore}}">One or more Files must be selected</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding FilesRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolFilesRequirement.RequireTwoOrMore}}">More than one File must be selected</RadioButton>
+                                            <RadioButton HorizontalAlignment="Left" IsChecked="{Binding FilesRequirement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static settingsBase:ToolFilesRequirement.RequireNull}}">No files must be selected</RadioButton>
+                                        </StackPanel>
+
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem Name="AppSettingsTab" Header="Application Settings">
+                <StackPanel Orientation="Vertical">
+                    <CheckBox IsChecked="{Binding Config.PlayStartSound}" Margin="4,2">Play Sound on Startup</CheckBox>
+                    <Separator Height="2" Margin="4,0"></Separator>
+                    <Button Click="ButtonOpenConfigPath_Click" HorizontalAlignment="Left" Margin="4,2" Padding="4,1">Open Config Path...</Button>
+                </StackPanel>
+            </TabItem>
+            
+            <TabItem Header="Help">
+                <StackPanel Orientation="Vertical">
+                    <Label>SG Toolbox' Open Here Utility</Label>
+                    <Separator Height="2" Margin="4,0"></Separator>
+                    <Label>
+                        <TextBlock Text="{Binding VersionInfo,Mode=OneTime}"/>
+                    </Label>
+                    <Separator Height="2" Margin="4,0"></Separator>
+                    <Label>
+                        <TextBlock Text="{Binding QuickHelp,Mode=OneTime}"/>
+                    </Label>
+                    <Label>
+                        <Hyperlink Click="HyperlinkProjectUrl_Click">
+                            <TextBlock Text="{Binding ProjectUrl,Mode=OneTime}" />
+                        </Hyperlink>
+                    </Label>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
