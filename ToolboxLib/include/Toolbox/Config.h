@@ -33,12 +33,18 @@ namespace toolbox
 
 		inline bool GetPlayStartSound() const { return m_playStartSound; }
 		inline void SetPlayStartSound(bool playStartSound) { m_playStartSound = playStartSound; }
+		inline bool GetPlayToolStartSound() const { return m_playToolStartSound; }
+		inline void SetPlayToolStartSound(bool playToolStartSound) { m_playToolStartSound = playToolStartSound; }
+		inline bool GetStartToolToFront() const { return m_startToolToFront; }
+		inline void SetStartToolToFront(bool startToolToFront) { m_startToolToFront = startToolToFront; }
 
 	private:
 		constexpr static const wchar_t* configFilename = L"config.json";
 		constexpr static const char* fileTypeMarker = "open-here-config";
 
 		bool m_playStartSound{ false };
+		bool m_playToolStartSound{ false };
+		bool m_startToolToFront{ true };
 
 	};
 
