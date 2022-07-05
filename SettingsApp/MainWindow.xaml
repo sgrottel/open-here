@@ -137,6 +137,7 @@ limitations under the License.
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0">Title</Label>
@@ -213,6 +214,15 @@ limitations under the License.
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
+
+                        <Expander Name="ToolPreview" Grid.Row="4" Grid.ColumnSpan="3">
+                            <Expander.Header>
+                                <Button Grid.Column="1" Margin="0,2" Padding="4,1" Click="ButtonToolPreview_Click">Preview...</Button>
+                            </Expander.Header>
+                            <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" IsReadOnly="True"
+                                     Text="{Binding PreviewString}" />
+                        </Expander>
+
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -220,6 +230,9 @@ limitations under the License.
             <TabItem Name="AppSettingsTab" Header="Application Settings">
                 <StackPanel Orientation="Vertical">
                     <CheckBox IsChecked="{Binding Config.PlayStartSound}" Margin="4,2">Play Sound on Startup</CheckBox>
+                    <Separator Height="2" Margin="4,0"></Separator>
+                    <CheckBox IsChecked="{Binding Config.PlayToolStartSound}" Margin="4,2">Play Sound on Tool Start</CheckBox>
+                    <CheckBox IsChecked="{Binding Config.StartToolToFront}" Margin="4,2">Bring Tool Window to Front on Start</CheckBox>
                     <Separator Height="2" Margin="4,0"></Separator>
                     <Button Click="ButtonOpenConfigPath_Click" HorizontalAlignment="Left" Margin="4,2" Padding="4,1">Open Config Path...</Button>
                 </StackPanel>

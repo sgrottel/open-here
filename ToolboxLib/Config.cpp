@@ -82,6 +82,18 @@ bool Config::Load()
 		m_playStartSound = j["startsound"].get<bool>();
 	}
 
+	if (j.contains("toolstartsound"))
+	{
+		if (!j["toolstartsound"].is_boolean()) throw std::logic_error("`toolstartsound` must be boolean");
+		m_playToolStartSound = j["toolstartsound"].get<bool>();
+	}
+
+	if (j.contains("toolstarttofront"))
+	{
+		if (!j["toolstarttofront"].is_boolean()) throw std::logic_error("`toolstarttofront` must be boolean");
+		m_startToolToFront = j["toolstarttofront"].get<bool>();
+	}
+
 	return true;
 }
 
@@ -94,7 +106,9 @@ bool Config::Save()
 	tools = json{
 		{"_type", fileTypeMarker},
 		{"_version", { 1, 0 }},
-		{"startsound", m_playStartSound }
+		{"startsound", m_playStartSound },
+		{"toolstartsound", m_playToolStartSound },
+		{"toolstarttofront", m_startToolToFront }
 	};
 
 	std::wstring path{ Config::Path(configFilename) };

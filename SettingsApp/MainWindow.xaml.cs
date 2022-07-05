@@ -687,6 +687,67 @@ namespace OpenHere.SettingsApp
             }
 
         }
+
+        private void ButtonToolPreview_Click(object sender, RoutedEventArgs e)
+        {
+            ToolInfoView? tool = ToolsList.SelectedItem as ToolInfoView;
+            if (tool == null) return;
+
+            try
+            {
+                SettingsBase.FileExplorer.Detector det = new SettingsBase.FileExplorer.Detector();
+                if (det.Detect() < 1)
+                {
+                    throw new Exception("No file explorer detected");
+                }
+
+                var fe = det.Instances[0];
+                if (fe == null) throw new Exception();
+                string fileExpInfo = fe.InstanceType;
+                string path = "";
+                if (fe.OpenPaths != null && fe.OpenPaths.Length > 0)
+                {
+                    path = fe.OpenPaths[0];
+                    fileExpInfo += "\n  Path: " + path;
+                }
+                string[] files = new string[0];
+                if (fe.SelectedItems != null)
+                {
+                    files = fe.SelectedItems;
+                    fileExpInfo += "\n  " + files.Length + " file" + (files.Length == 1 ? "" : "s") + ": "
+                        + string.Join(", ", files.Select((string s) => { return System.IO.Path.GetFileName(s); }));
+                }
+
+                SettingsBase.ToolRunner runner = new SettingsBase.ToolRunner();
+                var startConfig = runner.SelectStartConfig(tool, path, files, true);
+                if (startConfig == null)
+                {
+                    throw new Exception("No Start Configuration selected");
+                }
+                startConfig = new SettingsBase.ToolStartConfig() {
+                    PathRequirement = startConfig.PathRequirement,
+                    FilesRequirement = startConfig.FilesRequirement,
+                    Executable = startConfig.Executable,
+                    Arguments = (string[])startConfig.Arguments.Clone(),
+                    WorkingDirectory = startConfig.WorkingDirectory
+                };
+
+                runner.ApplyVariables(ref startConfig, path, files);
+
+                tool.PreviewString = fileExpInfo
+                    + "\n\nCalling:\n"
+                    + "\"" + startConfig.Executable + "\" "
+                    + string.Join(" ", startConfig.Arguments.Select((string f) => { return "\"" + f.Replace("\"", "\\\"") + "\""; }))
+                    + "\nWorking Directory:\n"
+                    + startConfig.WorkingDirectory;
+
+            }
+            catch(Exception ex)
+            {
+                tool.PreviewString = "Failed to preview: " + ex;
+            }
+            ToolPreview.IsExpanded = true;
+        }
     }
 
 }

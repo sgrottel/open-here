@@ -317,7 +317,7 @@ bool ToolRunner::Start(ToolInfo::StartConfig const& toolStartConfig)
 
 	for (size_t i = 0; i < toolStartConfig.arguments.size(); ++i)
 	{
-		if (i > 0) cmdLine << L" ";
+		cmdLine << L" ";
 		std::wstring const& arg = toolStartConfig.arguments[i];
 
 		if (std::find_if(arg.cbegin(), arg.cend(), [](wchar_t const& c) { return std::iswspace(c) != 0; }) != arg.cend())

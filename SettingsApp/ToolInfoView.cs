@@ -165,6 +165,20 @@ namespace OpenHere.SettingsApp
             get { return Index + 1 < Size; }
         }
 
+        private string previewString = "";
+        public string PreviewString
+        {
+            get { return previewString; }
+            set
+            {
+                if (previewString != value)
+                {
+                    previewString = value;
+                    OnPropertyChanged(nameof(PreviewString));
+                }
+            }
+        }
+
         #region Placement Icon Utility
 
         private Brush highlightBrush = System.Windows.SystemColors.HighlightBrush;

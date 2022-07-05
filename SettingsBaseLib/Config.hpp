@@ -80,6 +80,30 @@ namespace SettingsBase
             }
         }
 
+        property bool PlayToolStartSound
+        {
+            bool get() { return m_config->GetPlayToolStartSound(); }
+            void set(bool v) {
+                if (v != m_config->GetPlayToolStartSound())
+                {
+                    m_config->SetPlayToolStartSound(v);
+                    OnPropertyChanged("PlayToolStartSound");
+                }
+            }
+        }
+
+        property bool StartToolToFront
+        {
+            bool get() { return m_config->GetStartToolToFront(); }
+            void set(bool v) {
+                if (v != m_config->GetStartToolToFront())
+                {
+                    m_config->SetStartToolToFront(v);
+                    OnPropertyChanged("StartToolToFront");
+                }
+            }
+        }
+
     protected:
 
         !Config()
