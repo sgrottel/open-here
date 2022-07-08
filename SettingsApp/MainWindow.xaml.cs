@@ -205,7 +205,7 @@ namespace OpenHere.SettingsApp
                 try
                 {
                     ImportExport ie = new ImportExport();
-                    ie.Import(@"C:\temp\export.xml");
+                    ie.Import(ofd.FileName);
 
                     Config = ie?.Config ?? new SettingsBase.Config();
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Config"));
