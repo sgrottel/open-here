@@ -103,7 +103,7 @@ namespace SettingsBase
             openhere::toolbox::ToolInfo::StartConfig sc;
             CopyTo(sc, config);
 
-            return m_runner->Start(sc);
+            return m_runner->Start(sc, nullptr);
         }
 
     protected:

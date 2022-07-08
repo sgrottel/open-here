@@ -27,4 +27,12 @@ BOOL IsForegroundHWnd(HWND hWnd);
 
 BOOL BringHWndToFront(HWND hWnd, BOOL okIfUnobscured);
 
+struct PreStartInfo;
+
+struct PreStartInfo* PrepareMainWndDetectionA(const char* executable);
+
+struct PreStartInfo* PrepareMainWndDetectionW(const wchar_t* executable);
+
+HWND DetectNewMainWnd(unsigned int processId, struct PreStartInfo* preStart, int timeOutMs);
+
 #endif /* _BringHWndToFront_h_included_ */

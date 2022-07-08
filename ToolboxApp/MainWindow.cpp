@@ -40,6 +40,7 @@ namespace
 			r.bottom - r.top
 		};
 	}
+
 }
 
 
@@ -668,7 +669,29 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 				if (selCfg == nullptr) throw std::runtime_error("No start configuration selected");
 				openhere::toolbox::ToolInfo::StartConfig cfg{ *selCfg };
 				runner.ApplyVariables(cfg, m_path, m_files);
-				if (!runner.Start(cfg)) throw std::runtime_error("generic start call failure");
+
+				struct PreStartInfo* preStartInfo = nullptr;
+				if (m_config.GetStartToolToFront())
+				{
+					preStartInfo = PrepareMainWndDetectionW(cfg.executable.c_str());
+				}
+
+				unsigned int procId = 0;
+				if (!runner.Start(cfg, &procId)) throw std::runtime_error("generic start call failure");
+				if (m_config.GetPlayToolStartSound())
+				{
+					MessageBeep(MB_OK);
+				}
+
+				if (m_config.GetStartToolToFront())
+				{
+					HWND hWnd = DetectNewMainWnd(procId, preStartInfo, 5000);
+					if (hWnd != NULL)
+					{
+						BringHWndToFront(hWnd, FALSE);
+					}
+				}
+
 				PostQuitMessage(0);
 			}
 			catch(std::exception const& ex)

@@ -14,9 +14,9 @@ You can use the command line application to retrieve this information.
 Or you can use the GUI application, displaying a tool window to select and open one of up to twelve configured tools.
 
 Read more about:
-* GUI Application -- TODO
-* GUI Settings Application -- TODO
-* [Command Line Application](./ConsoleApp/README.md)
+* [GUI Application](./doc/toolbox_app.md)
+* [GUI Settings Application](./doc/settings_app.md)
+* [Command Line Application](./doc/console_app.md)
 * [How to build the Software](./HowtoBuild.md)
 
 

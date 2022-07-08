@@ -1,4 +1,4 @@
-# Open Here Console Application
+# Open Here Command Line Application
 The command line application `OpenHereCon.exe` prints the information about detected file explorer instances to the standard output channel.
 The text is printed in a why which is both readable and easy to parse.
 

@@ -311,9 +311,10 @@ void ToolRunner::ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std
 }
 
 
-bool ToolRunner::Start(ToolInfo::StartConfig const& toolStartConfig)
+bool ToolRunner::Start(ToolInfo::StartConfig const& toolStartConfig, unsigned int* outProcId)
 {
 	std::wstringstream cmdLine;
+	cmdLine << std::filesystem::path{ toolStartConfig.executable }.filename().wstring();
 
 	for (size_t i = 0; i < toolStartConfig.arguments.size(); ++i)
 	{
@@ -357,15 +358,26 @@ bool ToolRunner::Start(ToolInfo::StartConfig const& toolStartConfig)
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 
 	BOOL cpr = CreateProcessW(
-		toolStartConfig.executable.c_str(), cmd.data(), nullptr, nullptr, FALSE,
+		toolStartConfig.executable.c_str(),
+		cmd.data(),
+		nullptr, nullptr, FALSE,
 		CREATE_DEFAULT_ERROR_MODE | CREATE_NEW_PROCESS_GROUP,
-		nullptr, toolStartConfig.workingDir.c_str(), &si, &pi);
+		nullptr,
+		(!toolStartConfig.workingDir.empty())
+			? toolStartConfig.workingDir.c_str()
+			: nullptr,
+		&si, &pi);
 	if (cpr == FALSE)
 	{
 		DWORD le = GetLastError();
 		std::string msg{ "Failed to create Process: " };
 		msg += std::to_string(le);
 		throw std::runtime_error(msg.c_str());
+	}
+
+	if (outProcId != nullptr)
+	{
+		*outProcId = pi.dwProcessId;
 	}
 
 	CloseHandle(pi.hProcess);
