@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace openhere
 {
@@ -35,7 +36,7 @@ namespace toolbox
 
 		void ApplyVariables(ToolInfo::StartConfig& inOutToolStartConfig, std::wstring const& path, std::vector<std::wstring> const& files);
 
-		bool Start(ToolInfo::StartConfig const& toolStartConfig);
+		bool Start(ToolInfo::StartConfig const& toolStartConfig, unsigned int* outProcId);
 
 	};
 
