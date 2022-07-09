@@ -352,7 +352,7 @@ void MainWindow::FinializeSetup()
 		else
 		{
 			// stay disabled, and add error message
-			m_labels[m_buttonTitleLabelIndex[i]].txt = L"- " + err + L" -\n" + m_labels[m_buttonTitleLabelIndex[i]].txt;
+			m_labels[m_buttonTitleLabelIndex[i]].txt = L"-" + err + L"-\n" + m_labels[m_buttonTitleLabelIndex[i]].txt;
 		}
 	}
 
@@ -629,6 +629,14 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_F10)
+		{
+			// redirect F10 to normal key handling
+			PostMessageW(m_hWnd, WM_KEYDOWN, VK_F10, lParam);
+			return 0;
+		}
+		break;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
@@ -850,25 +858,72 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 void MainWindow::OpenSettings()
 {
+	bool found = false;
+	struct PreStartInfo* preStartInfo = nullptr;
+
 	WCHAR path[MAX_PATH];
 	GetModuleFileNameW(NULL, path, MAX_PATH);
 	std::filesystem::path p{ path };
 	p = p.parent_path() / L"OpenHereSettings.exe";
-	if (std::filesystem::is_regular_file(p))
+
+	try
 	{
-		ShellExecuteW(NULL, NULL, p.wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
-	}
-	else
-	{
-		p = p.parent_path() / L"OpenHereSettings" / L"OpenHereSettings.exe";
+		SHELLEXECUTEINFOW shExeInfo;
+		ZeroMemory(&shExeInfo, sizeof(SHELLEXECUTEINFOW));
+		shExeInfo.cbSize = sizeof(SHELLEXECUTEINFOW);
+		shExeInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+		shExeInfo.nShow = SW_NORMAL;
+		shExeInfo.hProcess = NULL;
+
 		if (std::filesystem::is_regular_file(p))
 		{
-			ShellExecuteW(NULL, NULL, p.wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
+			found = true;
+			preStartInfo = PrepareMainWndDetectionW(p.wstring().c_str());
+			std::wstring file{ p.wstring() };
+			shExeInfo.lpFile = file.c_str();
+			ShellExecuteExW(&shExeInfo);
 		}
 		else
 		{
-			// open settings folder as fallback
-			ShellExecuteW(NULL, NULL, openhere::toolbox::Config::Path().c_str(), NULL, NULL, SW_SHOWNORMAL);
+			p = p.parent_path() / L"OpenHereSettings" / L"OpenHereSettings.exe";
+			if (std::filesystem::is_regular_file(p))
+			{
+				found = true;
+				preStartInfo = PrepareMainWndDetectionW(p.wstring().c_str());
+				std::wstring file{ p.wstring() };
+				shExeInfo.lpFile = file.c_str();
+				ShellExecuteExW(&shExeInfo);
+			}
 		}
+
+		if (shExeInfo.hProcess != NULL)
+		{
+			DWORD pid = GetProcessId(shExeInfo.hProcess);
+			HWND hWnd = DetectNewMainWnd(pid, preStartInfo, 5000);
+			if (hWnd != NULL)
+			{
+				BringHWndToFront(hWnd, FALSE);
+			}
+			CloseHandle(shExeInfo.hProcess);
+		}
+
+	}
+	catch (std::exception const& ex)
+	{
+		std::wstring msg{ (std::wstringstream{} << L"Failed to started Settings Application: " << ex.what()).str() };
+		MessageBoxW(m_hWnd, msg.c_str(), ToolboxApp::AppName, MB_ICONERROR | MB_OK);
+		found = true;
+	}
+	catch (...)
+	{
+		std::wstring msg{ (std::wstringstream{} << L"Failed to started Settings Application: unknown error").str() };
+		MessageBoxW(m_hWnd, msg.c_str(), ToolboxApp::AppName, MB_ICONERROR | MB_OK);
+		found = true;
+	}
+
+	if (!found)
+	{
+		// open settings folder as fallback
+		ShellExecuteW(NULL, NULL, openhere::toolbox::Config::Path().c_str(), NULL, NULL, SW_SHOWNORMAL);
 	}
 }
