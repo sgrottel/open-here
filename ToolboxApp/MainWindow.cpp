@@ -645,6 +645,8 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case VK_HOME:
+			ShowWindow(m_hWnd, SW_HIDE);
+
 			OpenSettings();
 			PostQuitMessage(0);
 			break;
@@ -670,6 +672,8 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 				// spacer -> no action
 				break;
 			}
+
+			ShowWindow(m_hWnd, SW_HIDE);
 
 			try
 			{

@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="IconFallbackCache.cpp" />
     <ClCompile Include="IconLibrary.cpp" />
     <ClCompile Include="IconLoader.cpp" />
     <ClCompile Include="ToolInfo.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="VarStringSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IconFallbackCache.h" />
     <ClInclude Include="include\Toolbox\Config.h" />
     <ClInclude Include="include\Toolbox\IconLibrary.h" />
     <ClInclude Include="include\Toolbox\IconLoader.h" />
