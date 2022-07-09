@@ -126,6 +126,7 @@ void IconFallbackCache::Store(LPCWSTR path, int id, HBITMAP bmp)
 	memDC.reset();
 	std::filesystem::path p{ path };
 
+	std::lock_guard<std::mutex> lock{ m_asyncsLock };
 	m_asyncs.push_back(
 		std::async(std::launch::async,
 		[](
@@ -155,6 +156,7 @@ void IconFallbackCache::Store(LPCWSTR path, int id, HBITMAP bmp)
 
 IconFallbackCache::IconFallbackCache()
 {
+	std::lock_guard<std::mutex> lock{ m_asyncsLock };
 	m_asyncs.push_back(
 		std::async(std::launch::async,
 		[]() {

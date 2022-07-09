@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <future>
+#include <mutex>
 
 namespace openhere
 {
@@ -45,6 +46,7 @@ namespace toolbox
 
 		// store all asyncs (1 + 1xtools) to defer the joins to the end of the program run
 		std::vector<std::future<void>> m_asyncs;
+		std::mutex m_asyncsLock;
 	};
 
 }
