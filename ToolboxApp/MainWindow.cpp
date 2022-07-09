@@ -352,7 +352,7 @@ void MainWindow::FinializeSetup()
 		else
 		{
 			// stay disabled, and add error message
-			m_labels[m_buttonTitleLabelIndex[i]].txt = L"- " + err + L" -\n" + m_labels[m_buttonTitleLabelIndex[i]].txt;
+			m_labels[m_buttonTitleLabelIndex[i]].txt = L"-" + err + L"-\n" + m_labels[m_buttonTitleLabelIndex[i]].txt;
 		}
 	}
 
@@ -628,6 +628,14 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		break;
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_F10)
+		{
+			// redirect F10 to normal key handling
+			PostMessageW(m_hWnd, WM_KEYDOWN, VK_F10, lParam);
+			return 0;
+		}
 		break;
 	case WM_KEYDOWN:
 		switch (wParam)
