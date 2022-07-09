@@ -145,9 +145,16 @@ IconFallbackCache::IconFallbackCache()
 			Sleep(1000);
 			// Cleanup!
 			// Delete all icon cache files older than 14 days.
-
-
+			for (std::filesystem::directory_iterator fn{ GetCachePath() }, end; fn != end; ++fn)
+			{
+				if (!fn->is_regular_file()) continue;
+				int ageInDays = std::chrono::duration_cast<std::chrono::days>(
+					std::chrono::file_clock::now() - fn->last_write_time()).count();
+				if (ageInDays >= 14)
+				{
+					std::filesystem::remove(fn->path());
+				}
+			}
 		})
 	);
-
 }
