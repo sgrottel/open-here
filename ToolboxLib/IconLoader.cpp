@@ -16,6 +16,7 @@
 #include "Toolbox/IconLoader.h"
 
 #include "Toolbox/IconLibrary.h"
+#include "IconFallbackCache.h"
 
 #include <vector>
 #include <stdexcept>
@@ -36,17 +37,29 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 {
 	int const &width = size.cx;
 	int const &height = size.cy;
+	HBITMAP hbmp = NULL;
 
 	IconLibrary lib;
 	lib.Open(path, width, height);
 	HICON icon = lib.GetIcon(static_cast<uint32_t>(id), width, height);
 	if (!icon)
 	{
-		throw std::runtime_error("Icon not found");
+		
+		hbmp = IconFallbackCache::Instance().Load(path, id, width, height);
+		if (hbmp == NULL)
+		{
+			throw std::runtime_error("Icon not found");
+		}
+		return hbmp;
 	}
 
-	HBITMAP hbmp = FromIcon(icon, width, height);
+	hbmp = FromIcon(icon, width, height);
 	DestroyIcon(icon);
+	if (hbmp == NULL)
+	{
+		throw std::runtime_error("Icon not found");
+	}
+	IconFallbackCache::Instance().Store(path, id, hbmp);
 
 	return hbmp;
 }
