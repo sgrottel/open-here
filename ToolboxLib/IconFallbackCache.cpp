@@ -67,10 +67,25 @@ IconFallbackCache& IconFallbackCache::Instance()
 
 HBITMAP IconFallbackCache::Load(LPCWSTR path, int id, int width, int height)
 {
+	std::filesystem::path filepath{ GetCachePath() };
+	filepath /= GetCacheFileName(path, id, width, height);
+	if (!std::filesystem::is_regular_file(filepath)) return NULL;
+	
+	std::vector<uint8_t> imgData;
+	imgData.resize(width * height * 4);
 
-	// TODO: Implement
+	std::ifstream file;
+	file.open(filepath, std::ios::binary | std::ios::in);
+	if (!file.is_open()) return NULL;
 
-	return NULL;
+	const int line = width * 4;
+	for (int y = 0; y < height; ++y)
+	{
+		file.read(reinterpret_cast<char*>(imgData.data() + line * (height - y - 1)), line);
+	}
+	file.close();
+
+	return CreateBitmap(width, height, 1, 32, imgData.data());
 }
 
 
@@ -136,6 +151,7 @@ void IconFallbackCache::Store(LPCWSTR path, int id, HBITMAP bmp)
 		bmpInfo.bmiHeader.biHeight,
 		std::move(imgData)));
 }
+
 
 IconFallbackCache::IconFallbackCache()
 {
