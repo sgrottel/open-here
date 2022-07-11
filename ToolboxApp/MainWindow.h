@@ -24,6 +24,10 @@
 
 #include <vector>
 #include <array>
+#include <memory>
+#include <functional>
+#include <atomic>
+#include <unordered_map>
 
 class ToolboxApp;
 
@@ -41,7 +45,7 @@ public:
 	void FinializeSetup();
 
 private:
-	constexpr static unsigned int const toolCount{ 12u };
+	constexpr static unsigned int const toolOnPageCount{ 12u };
 	constexpr static uint32_t const baseDpi{ 96u };
 
 	SIZE ComputeLayout(RECT const& desktop);
@@ -59,6 +63,9 @@ private:
 	LRESULT WndProc(UINT message, WPARAM wParam, LPARAM lParam);
 
 	void OpenSettings();
+
+	void PutToolOnPage(size_t idx, openhere::toolbox::ToolInfo const* tool);
+	void UpdatePage();
 
 	HWND m_hWnd { NULL };
 	InstProxy m_proxy;
@@ -81,8 +88,8 @@ private:
 	std::vector<Label> m_labels;
 	size_t m_pathLabelIndex{ 0 };
 	size_t m_itemsLabelIndex{ 0 };
-	std::array<size_t, toolCount> m_buttonTitleLabelIndex;
-	std::array<size_t, toolCount> m_buttonKeyLabelIndex;
+	std::array<size_t, toolOnPageCount> m_buttonTitleLabelIndex;
+	std::array<size_t, toolOnPageCount> m_buttonKeyLabelIndex;
 
 	bool m_clickCursor{ false };
 	struct ClickRect {
@@ -91,7 +98,7 @@ private:
 		UINT_PTR keyCode;
 	};
 	std::vector<ClickRect> m_clickRects;
-	std::array<size_t, toolCount> m_buttonClickRectIndex;
+	std::array<size_t, toolOnPageCount> m_buttonClickRectIndex;
 	ClickRect const* m_clickingRect{ nullptr };
 
 	struct Bitmap {
@@ -101,11 +108,19 @@ private:
 	};
 	std::vector<Bitmap> m_bitmaps;
 	size_t m_explorerBitmapIndex{ 0 };
-	std::array<size_t, toolCount> m_buttonBitmapIndex;
+	std::array<size_t, toolOnPageCount> m_buttonBitmapIndex;
 
 	std::wstring m_path;
 	std::vector<std::wstring> m_files;
 
-	std::array<openhere::toolbox::ToolInfo, toolCount> m_tools;
+	std::vector<openhere::toolbox::ToolInfo> m_tools;
+	std::unordered_map<openhere::toolbox::ToolInfo const*,
+		std::unique_ptr<std::remove_pointer_t<HBITMAP>, std::function<void(HBITMAP)>>> m_toolsIcons;
+	std::array<openhere::toolbox::ToolInfo const*, toolOnPageCount> m_placedTool;
+
 	openhere::toolbox::Config m_config;
+
+	unsigned int m_pageId{ 0 };
+	unsigned int m_pageCount{ 1 };
+	int m_pageIndicator[4];
 };

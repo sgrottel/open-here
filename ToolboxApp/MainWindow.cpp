@@ -209,35 +209,73 @@ void MainWindow::SetFileExplorerInstanceInfo(openhere::fileexplorerdetector::Ins
 
 void MainWindow::SetToolInfos(std::vector<openhere::toolbox::ToolInfo> const& tools)
 {
-	size_t len = std::min<size_t>(tools.size(), toolCount);
-	for (size_t i = 0; i < len; ++i)
+	using openhere::toolbox::ToolInfo;
+
+	for (auto& p : m_placedTool) p = nullptr;
+	m_tools = tools;
+	m_toolsIcons.clear();
+
+	m_pageId = 0;
+	m_pageCount = static_cast<unsigned int>((m_tools.size() + 11) / 12);
+	if (m_pageCount < 1) m_pageCount = 1;
+
+	SIZE iconSize = GetSize(m_bitmaps[m_buttonBitmapIndex[0]].rect);
+	for (size_t ti = 0; ti < m_tools.size(); ++ti)
 	{
-		m_tools[i] = tools[i];
-
-		m_labels[m_buttonTitleLabelIndex[i]].txt = m_tools[i].GetTitle();
-		if (m_labels[m_buttonTitleLabelIndex[i]].txt.empty())
-		{
-			// empty title -> spacer
-			continue;
-		}
-		m_labels[m_buttonTitleLabelIndex[i]].visible = true;
-		m_labels[m_buttonTitleLabelIndex[i]].enabled = false;
-
-		m_bitmaps[m_buttonBitmapIndex[i]].enabled = false;
-		SIZE size = GetSize(m_bitmaps[m_buttonBitmapIndex[i]].rect);
+		m_toolsIcons[&(m_tools[ti])].reset();
 		m_bitmapFactory.Async(
-			size,
-			[i](BitmapFactory& bf, SIZE const& size, unsigned int idx, void* ctxt) -> HBITMAP {
+			iconSize,
+			[](BitmapFactory& bf, SIZE const& size, unsigned int idx, void* ctxt) -> HBITMAP
+			{ // loader
 				MainWindow* that = static_cast<MainWindow*>(ctxt);
 				return bf.LoadFromIconFile(
-					that->m_tools[i].GetIconFile().c_str(),
-					that->m_tools[i].GetIconID(),
+					that->m_tools[idx].GetIconFile().c_str(),
+					that->m_tools[idx].GetIconID(),
 					size);
 			},
-			&MainWindow::SetBitmapImage,
-			static_cast<unsigned int>(m_buttonBitmapIndex[i]),
-			static_cast<void*>(this));
+			[](HBITMAP hBmp, unsigned int idx, void* ctxt)
+			{ // setter
+				MainWindow* that = static_cast<MainWindow*>(ctxt);
+				const ToolInfo* tool = (idx < that->m_tools.size()) ? &(that->m_tools[idx]) : nullptr;
+				if (tool == nullptr)
+				{
+					DeleteObject(hBmp);
+					return;
+				}
 
+				that->m_toolsIcons[tool]
+					= std::unique_ptr<std::remove_pointer_t<HBITMAP>, std::function<void(HBITMAP)>>(
+						hBmp,
+						&DeleteObject
+						);
+				bool placed = false;
+				for (size_t p = 0; p < that->m_placedTool.size(); ++p)
+				{
+					if (that->m_placedTool[p] == tool)
+					{
+						that->m_bitmaps[that->m_buttonBitmapIndex[p]].hBmp = hBmp;
+						placed = true;
+					}
+				}
+				if (placed)
+				{
+					InvalidateRect(that->m_hWnd, NULL, true);
+				}
+			},
+			static_cast<unsigned int>(ti),
+			static_cast<void*>(this));
+	}
+
+	for (size_t i = 0; i < toolOnPageCount; ++i)
+	{
+		ToolInfo const* tool = i < m_tools.size() ? &m_tools[i] : nullptr;
+		PutToolOnPage(i, tool);
+
+		m_labels[m_buttonKeyLabelIndex[i]].visible = false;
+		m_labels[m_buttonTitleLabelIndex[i]].visible = true;
+		m_labels[m_buttonTitleLabelIndex[i]].enabled = false;
+		m_bitmaps[m_buttonBitmapIndex[i]].enabled = false;
+		m_clickRects[m_buttonClickRectIndex[i]].enabled = false;
 	}
 
 	InvalidateRect(m_hWnd, NULL, true);
@@ -257,106 +295,8 @@ void MainWindow::FinializeSetup()
 		MessageBeep(MB_OK);
 	}
 
-	// Now file explorer detection and configuration loading are completed.
-	using openhere::toolbox::ToolInfo;
-	openhere::toolbox::ToolRunner runner;
-
 	// Currently all are disabled. Enable if all requirements are met
-	for (size_t i = 0; i < toolCount; ++i)
-	{
-		std::wstring err;
-		if (m_tools[i].GetTitle().empty()) continue;
-
-		switch (m_tools[i].GetPathRequirement())
-		{
-		case ToolInfo::PathRequirement::DontCare:
-			break;
-		case ToolInfo::PathRequirement::Required:
-			if (m_path.empty())
-			{
-				err = L"Path required";
-			}
-			break;
-		case ToolInfo::PathRequirement::RequiredNull:
-			if (!m_path.empty())
-			{
-				err = L"Path forbidden";
-			}
-			break;
-		default:
-			throw std::logic_error("Unhandled configuration");
-		}
-
-		switch (m_tools[i].GetFilesRequirement())
-		{
-		case ToolInfo::FilesRequirement::DontCare:
-			break;
-		case ToolInfo::FilesRequirement::RequireOne:
-			if (m_files.size() != 1)
-			{
-				err = L"Exactly one file must be selected";
-			}
-			break;
-		case ToolInfo::FilesRequirement::RequireOneOrMore:
-			if (m_files.size() < 1)
-			{
-				err = L"At least one file must be selected";
-			}
-			break;
-		case ToolInfo::FilesRequirement::RequireTwoOrMore:
-			if (m_files.size() < 2)
-			{
-				err = L"Exactly two files must be selected";
-			}
-			break;
-		case ToolInfo::FilesRequirement::RequireNull:
-			if (m_files.size() > 1)
-			{
-				err = L"No file must be selected";
-			}
-			break;
-		default:
-			throw std::logic_error("Unhandled configuration");
-		}
-
-		if (err.empty())
-		{
-			try
-			{
-				if (!runner.CanStart(m_tools[i], m_path, m_files, err))
-				{
-					if (err.empty())
-					{
-						err = L"Cannot be started";
-					}
-				}
-			}
-			catch (std::exception& ex)
-			{
-				err = (std::wstringstream{} << ex.what()).str();
-			}
-			catch (...)
-			{
-				err = L"Unknown exception";
-			}
-		}
-
-		if (err.empty())
-		{
-			// enable button
-			m_labels[m_buttonTitleLabelIndex[i]].enabled = true;
-			m_labels[m_buttonKeyLabelIndex[i]].visible = true;
-			m_bitmaps[m_buttonBitmapIndex[i]].enabled = true;
-			m_clickRects[m_buttonClickRectIndex[i]].enabled = true;
-		}
-		else
-		{
-			// stay disabled, and add error message
-			m_labels[m_buttonTitleLabelIndex[i]].txt = L"-" + err + L"-\n" + m_labels[m_buttonTitleLabelIndex[i]].txt;
-		}
-	}
-
-	InvalidateRect(m_hWnd, NULL, true);
+	UpdatePage();
 
 	SetForegroundWindow(m_hWnd);
 	BringWindowToTop(m_hWnd);
@@ -416,6 +356,11 @@ SIZE MainWindow::ComputeLayout(RECT const& desktop)
 
 	unsigned int width = 4 * tileWidth + 7 * grid;
 	unsigned int height = 3 * tileHeight + (4 + 4 + 3) * grid;
+
+	m_pageIndicator[0] = grid; // x
+	m_pageIndicator[1] = height / 2; // center y
+	m_pageIndicator[2] = grid; // y spacing
+	m_pageIndicator[3] = grid / 5; // indicator width
 
 	// path
 	m_labels.push_back({
@@ -637,9 +582,28 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 		}
 		break;
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case VK_SHIFT:
+			if (m_pageId != 0)
+			{
+				m_pageId = 0;
+				UpdatePage();
+			}
+			break;
+		}
+		break;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
+		case VK_SHIFT:
+			if (m_pageId == 0 && m_pageCount > 1)
+			{
+				m_pageId = 1;
+				UpdatePage();
+			}
+			break;
 		case VK_ESCAPE:
 			PostQuitMessage(0);
 			break;
@@ -665,9 +629,9 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 		case VK_F12:
 		{
 			openhere::toolbox::ToolRunner runner;
-			openhere::toolbox::ToolInfo const& tool = m_tools[wParam - VK_F1];
+			openhere::toolbox::ToolInfo const *tool = m_placedTool[wParam - VK_F1];
 
-			if (tool.GetTitle().empty())
+			if (tool == nullptr || tool->GetTitle().empty())
 			{
 				// spacer -> no action
 				break;
@@ -677,7 +641,7 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			try
 			{
-				openhere::toolbox::ToolInfo::StartConfig const* selCfg = runner.SelectStartConfig(tool, m_path, m_files, true);
+				openhere::toolbox::ToolInfo::StartConfig const* selCfg = runner.SelectStartConfig(*tool, m_path, m_files, true);
 				if (selCfg == nullptr) throw std::runtime_error("No start configuration selected");
 				openhere::toolbox::ToolInfo::StartConfig cfg{ *selCfg };
 				runner.ApplyVariables(cfg, m_path, m_files);
@@ -708,12 +672,12 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			catch(std::exception const& ex)
 			{
-				std::wstring msg{ (std::wstringstream{} << L"Failed to started \"" << tool.GetTitle() << L"\": " << ex.what()).str() };
+				std::wstring msg{ (std::wstringstream{} << L"Failed to started \"" << tool->GetTitle() << L"\": " << ex.what()).str() };
 				MessageBoxW(m_hWnd, msg.c_str(), ToolboxApp::AppName, MB_ICONERROR | MB_OK);
 			}
 			catch (...)
 			{
-				std::wstring msg{ (std::wstringstream{} << L"Failed to started \"" << tool.GetTitle() << L"\": unknown error").str() };
+				std::wstring msg{ (std::wstringstream{} << L"Failed to started \"" << tool->GetTitle() << L"\": unknown error").str() };
 				MessageBoxW(m_hWnd, msg.c_str(), ToolboxApp::AppName, MB_ICONERROR | MB_OK);
 			}
 		}
@@ -762,6 +726,30 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 				: m_colors.GetDisabledForegroundColor()
 			);
 			DrawTextW(ps.hdc, l.txt.c_str(), static_cast<int>(l.txt.size()), &r, l.format);
+		}
+
+		if (m_pageCount > 1)
+		{
+			// page indicater
+			HBRUSH fg = CreateSolidBrush(m_colors.GetForegroundColor());
+			HBRUSH bkg = CreateSolidBrush(m_colors.GetBackgroundColor());
+			int r1 = m_pageIndicator[3];
+			HPEN oldPen = (HPEN)SelectObject(ps.hdc, CreatePen(PS_SOLID, r1 / 4, m_colors.GetForegroundColor()));
+
+			int px = m_pageIndicator[0];
+			int py = m_pageIndicator[1] - (m_pageIndicator[2] * m_pageCount) / 2;
+
+			for (unsigned int p = 0; p < m_pageCount; ++p)
+			{
+				SelectObject(ps.hdc, (p == m_pageId) ? fg : bkg);
+				Ellipse(ps.hdc, px - r1, py - r1, px + r1, py + r1);
+				py += m_pageIndicator[2];
+			}
+
+			DeleteBrush(fg);
+			DeleteBrush(bkg);
+
+			DeletePen(SelectObject(ps.hdc, oldPen));
 		}
 
 		EndPaint(m_hWnd, &ps);
@@ -930,4 +918,133 @@ void MainWindow::OpenSettings()
 		// open settings folder as fallback
 		ShellExecuteW(NULL, NULL, openhere::toolbox::Config::Path().c_str(), NULL, NULL, SW_SHOWNORMAL);
 	}
+}
+
+
+void MainWindow::PutToolOnPage(size_t idx, openhere::toolbox::ToolInfo const* tool)
+{
+	using openhere::toolbox::ToolInfo;
+
+	if (tool == nullptr || tool->GetTitle().empty())
+	{
+		m_labels[m_buttonKeyLabelIndex[idx]].visible = false;
+		m_labels[m_buttonTitleLabelIndex[idx]].visible = false;
+		m_bitmaps[m_buttonBitmapIndex[idx]].hBmp = NULL;
+		m_clickRects[m_buttonClickRectIndex[idx]].enabled = false;
+		m_placedTool[idx] = nullptr;
+		return;
+	}
+
+	m_placedTool[idx] = tool;
+	m_labels[m_buttonKeyLabelIndex[idx]].visible = false;
+	m_labels[m_buttonTitleLabelIndex[idx]].visible = true;
+	m_labels[m_buttonTitleLabelIndex[idx]].enabled = false;
+	m_labels[m_buttonTitleLabelIndex[idx]].txt = tool->GetTitle();
+	m_bitmaps[m_buttonBitmapIndex[idx]].hBmp = m_toolsIcons[tool].get();
+	m_bitmaps[m_buttonBitmapIndex[idx]].enabled = false;
+	m_clickRects[m_buttonClickRectIndex[idx]].enabled = false;
+
+	std::wstring err;
+	switch (tool->GetPathRequirement())
+	{
+	case ToolInfo::PathRequirement::DontCare:
+		break;
+	case ToolInfo::PathRequirement::Required:
+		if (m_path.empty())
+		{
+			err = L"Path required";
+		}
+		break;
+	case ToolInfo::PathRequirement::RequiredNull:
+		if (!m_path.empty())
+		{
+			err = L"Path forbidden";
+		}
+		break;
+	default:
+		throw std::logic_error("Unhandled configuration");
+	}
+
+	switch (tool->GetFilesRequirement())
+	{
+	case ToolInfo::FilesRequirement::DontCare:
+		break;
+	case ToolInfo::FilesRequirement::RequireOne:
+		if (m_files.size() != 1)
+		{
+			err = L"Exactly one file must be selected";
+		}
+		break;
+	case ToolInfo::FilesRequirement::RequireOneOrMore:
+		if (m_files.size() < 1)
+		{
+			err = L"At least one file must be selected";
+		}
+		break;
+	case ToolInfo::FilesRequirement::RequireTwoOrMore:
+		if (m_files.size() < 2)
+		{
+			err = L"Exactly two files must be selected";
+		}
+		break;
+	case ToolInfo::FilesRequirement::RequireNull:
+		if (m_files.size() > 1)
+		{
+			err = L"No file must be selected";
+		}
+		break;
+	default:
+		throw std::logic_error("Unhandled configuration");
+	}
+
+	if (err.empty())
+	{
+		try
+		{
+			openhere::toolbox::ToolRunner runner;
+			if (!runner.CanStart(*tool, m_path, m_files, err))
+			{
+				if (err.empty())
+				{
+					err = L"Cannot be started";
+				}
+			}
+		}
+		catch (std::exception& ex)
+		{
+			err = (std::wstringstream{} << ex.what()).str();
+		}
+		catch (...)
+		{
+			err = L"Unknown exception";
+		}
+	}
+
+	if (err.empty())
+	{
+		// enable button
+		m_labels[m_buttonTitleLabelIndex[idx]].enabled = true;
+		m_labels[m_buttonKeyLabelIndex[idx]].visible = true;
+		m_bitmaps[m_buttonBitmapIndex[idx]].enabled = true;
+		m_clickRects[m_buttonClickRectIndex[idx]].enabled = true;
+	}
+	else
+	{
+		// stay disabled, and add error message
+		m_labels[m_buttonTitleLabelIndex[idx]].txt = L"-" + err + L"-\n" + m_labels[m_buttonTitleLabelIndex[idx]].txt;
+	}
+}
+
+
+void MainWindow::UpdatePage()
+{
+	using openhere::toolbox::ToolInfo;
+	for (size_t j = 0; j < toolOnPageCount; ++j)
+	{
+		size_t i = j + m_pageId * 12;
+		ToolInfo const* tool = i < m_tools.size() ? &m_tools[i] : nullptr;
+		PutToolOnPage(j, tool);
+	}
+
+	InvalidateRect(m_hWnd, NULL, true);
 }
