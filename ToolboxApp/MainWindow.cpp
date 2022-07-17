@@ -631,6 +631,13 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			openhere::toolbox::ToolRunner runner;
 			openhere::toolbox::ToolInfo const *tool = m_placedTool[wParam - VK_F1];
 
+			Label const& keyLabel = m_labels[m_buttonKeyLabelIndex[wParam - VK_F1]];
+			if (!keyLabel.visible || !keyLabel.enabled)
+			{
+				// tool is not enabled
+				break;
+			}
+
 			if (tool == nullptr || tool->GetTitle().empty())
 			{
 				// spacer -> no action
