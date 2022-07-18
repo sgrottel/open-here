@@ -104,6 +104,18 @@ namespace SettingsBase
             }
         }
 
+        property bool DoLog
+        {
+            bool get() { return m_config->GetDoLog(); }
+            void set(bool v) {
+                if (v != m_config->GetDoLog())
+                {
+                    m_config->SetDoLog(v);
+                    OnPropertyChanged("DoLog");
+                }
+            }
+        }
+
     protected:
 
         !Config()

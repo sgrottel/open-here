@@ -18,6 +18,7 @@
 #include "ToolboxApp.h"
 #include "Toolbox/ToolRunner.h"
 #include "BringHWndToFront.h"
+#include "Toolbox/LogFile.h"
 
 #include <filesystem>
 
@@ -293,6 +294,10 @@ void MainWindow::FinializeSetup()
 	if (m_config.GetPlayStartSound())
 	{
 		MessageBeep(MB_OK);
+	}
+	if (m_config.GetDoLog())
+	{
+		openhere::toolbox::LogFile::Enable(true);
 	}
 
 	// Currently all are disabled. Enable if all requirements are met

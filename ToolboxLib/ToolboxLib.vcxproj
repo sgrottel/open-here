@@ -163,6 +163,7 @@
     <ClCompile Include="IconFallbackCache.cpp" />
     <ClCompile Include="IconLibrary.cpp" />
     <ClCompile Include="IconLoader.cpp" />
+    <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="ToolInfo.cpp" />
     <ClCompile Include="ToolInfoListLoader.cpp" />
     <ClCompile Include="ToolRunner.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="include\Toolbox\Config.h" />
     <ClInclude Include="include\Toolbox\IconLibrary.h" />
     <ClInclude Include="include\Toolbox\IconLoader.h" />
+    <ClInclude Include="include\Toolbox\LogFile.h" />
     <ClInclude Include="include\Toolbox\ToolInfo.h" />
     <ClInclude Include="include\Toolbox\ToolInfoListLoader.h" />
     <ClInclude Include="include\Toolbox\ToolRunner.h" />

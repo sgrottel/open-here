@@ -94,6 +94,12 @@ bool Config::Load()
 		m_startToolToFront = j["toolstarttofront"].get<bool>();
 	}
 
+	if (j.contains("writelogfile"))
+	{
+		if (!j["writelogfile"].is_boolean()) throw std::logic_error("`writelogfile` must be boolean");
+		m_doLog = j["writelogfile"].get<bool>();
+	}
+
 	return true;
 }
 
@@ -108,7 +114,8 @@ bool Config::Save()
 		{"_version", { 1, 0 }},
 		{"startsound", m_playStartSound },
 		{"toolstartsound", m_playToolStartSound },
-		{"toolstarttofront", m_startToolToFront }
+		{"toolstarttofront", m_startToolToFront },
+		{"writelogfile", m_doLog }
 	};
 
 	std::wstring path{ Config::Path(configFilename) };
