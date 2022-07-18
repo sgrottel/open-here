@@ -302,6 +302,14 @@ void MainWindow::FinializeSetup()
 
 	// Currently all are disabled. Enable if all requirements are met
 	UpdatePage();
+	if (m_pageCount > 1)
+	{
+		auto& cr = m_clickRects[m_pageIndicatorClickRectIndex];
+		int hh = ((m_pageCount - 1) * m_pageIndicator[2] + (cr.rect.right - cr.rect.left)) / 2;
+		cr.rect.top -= hh;
+		cr.rect.bottom += hh;
+		cr.enabled = true;
+	}
 
 	SetForegroundWindow(m_hWnd);
 	BringWindowToTop(m_hWnd);
@@ -366,6 +374,17 @@ SIZE MainWindow::ComputeLayout(RECT const& desktop)
 	m_pageIndicator[1] = height / 2; // center y
 	m_pageIndicator[2] = grid; // y spacing
 	m_pageIndicator[3] = grid / 5; // indicator width
+	m_clickRects.push_back(ClickRect{
+		false,
+		RECT(
+			m_pageIndicator[0] - m_pageIndicator[3] * 2,
+			m_pageIndicator[1],
+			m_pageIndicator[0] + m_pageIndicator[3] * 2,
+			m_pageIndicator[1]
+		),
+		0
+		});
+	m_pageIndicatorClickRectIndex = m_clickRects.size() - 1;
 
 	// path
 	m_labels.push_back({
@@ -749,7 +768,7 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			HPEN oldPen = (HPEN)SelectObject(ps.hdc, CreatePen(PS_SOLID, r1 / 4, m_colors.GetForegroundColor()));
 
 			int px = m_pageIndicator[0];
-			int py = m_pageIndicator[1] - (m_pageIndicator[2] * m_pageCount) / 2;
+			int py = m_pageIndicator[1] - (m_pageIndicator[2] * (m_pageCount - 1)) / 2;
 
 			for (unsigned int p = 0; p < m_pageCount; ++p)
 			{
@@ -846,9 +865,43 @@ LRESULT MainWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam)
 			if ((r.left < xPos) && (xPos < r.right)
 				&& (r.top < yPos) && (yPos < r.bottom))
 			{
-				PostMessage(m_hWnd, WM_KEYDOWN, m_clickingRect->keyCode, NULL);
+				if (m_clickingRect->keyCode == 0)
+				{
+					// no keyCode means special handling
+					if (m_clickingRect == &m_clickRects[m_pageIndicatorClickRectIndex])
+					{
+						const float y = static_cast<float>(yPos - r.top) / static_cast<float>(r.bottom - r.top);
+						int pageId = static_cast<int>(m_pageCount * y);
+						if (pageId < 0) pageId = 0;
+						if (pageId >= static_cast<int>(m_pageCount)) pageId = m_pageCount - 1;
+						if (m_pageId != pageId)
+						{
+							m_pageId = pageId;
+							UpdatePage();
+						}
+					}
+				}
+				else
+				{
+					PostMessage(m_hWnd, WM_KEYDOWN, m_clickingRect->keyCode, NULL);
+				}
 			}
 			m_clickingRect = nullptr;
+		}
+	}
+	break;
+
+	case WM_MOUSEWHEEL:
+	{
+		short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+		if (zDelta == 0) break;
+		int targetPageId = static_cast<int>(m_pageId) + ((zDelta < 0) ? 1 : -1);
+		if (targetPageId < 0) targetPageId = 0;
+		if (targetPageId >= static_cast<int>(m_pageCount)) targetPageId = m_pageCount - 1;
+		if (m_pageId != targetPageId)
+		{
+			m_pageId = targetPageId;
+			UpdatePage();
 		}
 	}
 	break;
