@@ -108,10 +108,8 @@ bool MainWindow::Init(int cmdShow)
 	DWM_WINDOW_CORNER_PREFERENCE cornerPreference = DWMWCP_ROUND;
 	DwmSetWindowAttribute(m_hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPreference, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
 
-//#define DWMWA_SYSTEMBACKDROP_TYPE 38
-//#define DWMSBT_TRANSIENTWINDOW 3
-//	int Backdrop_Type = DWMSBT_TRANSIENTWINDOW;
-//	DwmSetWindowAttribute(m_hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &Backdrop_Type, sizeof(int));
+	DWM_SYSTEMBACKDROP_TYPE Backdrop_Type = DWMSBT_TRANSIENTWINDOW;
+	DwmSetWindowAttribute(m_hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &Backdrop_Type, sizeof(DWM_SYSTEMBACKDROP_TYPE));
 
 	ShowWindow(m_hWnd, cmdShow);
 	SetCursor(LoadCursor(NULL, IDC_ARROW));

@@ -17,6 +17,7 @@
 #include "BitmapFactory.h"
 
 #include "Toolbox/IconLibrary.h"
+#include "Toolbox/LogFile.h"
 
 #include <shellapi.h>
 
@@ -280,6 +281,8 @@ HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, SIZE const& size
 		WORD idx = 0;
 		HICON icon = ExtractAssociatedIconW(nullptr, pathBuf, &idx);
 
+		openhere::toolbox::LogFile::Write() << L"LoadFolderIcon(" << path << L") FALLBACK\n";
+
 		HBITMAP hbmp = FromIcon(icon, width, height);
 
 		DestroyIcon(icon);
@@ -295,6 +298,11 @@ HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, SIZE const& size
 		return fallback();
 	}
 
+	openhere::toolbox::LogFile::Write() << L"LoadFolderIcon(" << path << L") fileInfo: "
+		<< fileInfo.szDisplayName
+		<< L" (attr: " << fileInfo.dwAttributes
+		<< L", index: " << fileInfo.iIcon << L")\n";
+
 	openhere::toolbox::IconLibrary lib;
 	try
 	{
@@ -308,12 +316,34 @@ HBITMAP BitmapFactory::LoadFolderIcon(std::wstring const& path, SIZE const& size
 		return fallback();
 	}
 
-	uint32_t index = std::abs(fileInfo.iIcon);
-	if (index >= lib.GetCount())
+	if (fileInfo.iIcon < 0)
 	{
-		return fallback();
+		bool found = false;
+		fileInfo.iIcon = -fileInfo.iIcon;
+		for (unsigned int i = 0; i < lib.GetCount(); ++i)
+		{
+			if (lib.GetId(i) == fileInfo.iIcon)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			return fallback();
+		}
 	}
-	HICON icon = lib.GetIcon(lib.GetId(index), width, height);
+	else
+	{
+		uint32_t index = std::abs(fileInfo.iIcon);
+		if (index >= lib.GetCount())
+		{
+			return fallback();
+		}
+		fileInfo.iIcon = lib.GetId(index);
+	}
+
+	HICON icon = lib.GetIcon(fileInfo.iIcon, width, height);
 	if (!icon)
 	{
 		return fallback();
