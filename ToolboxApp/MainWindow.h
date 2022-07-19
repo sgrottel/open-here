@@ -123,4 +123,5 @@ private:
 	unsigned int m_pageId{ 0 };
 	unsigned int m_pageCount{ 1 };
 	int m_pageIndicator[4];
+	size_t m_pageIndicatorClickRectIndex;
 };

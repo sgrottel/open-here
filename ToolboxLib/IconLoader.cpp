@@ -17,6 +17,7 @@
 
 #include "Toolbox/IconLibrary.h"
 #include "IconFallbackCache.h"
+#include "Toolbox/LogFile.h"
 
 #include <vector>
 #include <stdexcept>
@@ -42,9 +43,11 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 	IconLibrary lib;
 	lib.Open(path, width, height);
 	HICON icon = lib.GetIcon(static_cast<uint32_t>(id), width, height);
+
+	LogFile::Write() << "LoadFromIconFile(" << path << ", " << id << ", {" << width << ", " << height << "}) HCION = " << reinterpret_cast<uintptr_t>(icon);
+
 	if (!icon)
 	{
-		
 		hbmp = IconFallbackCache::Instance().Load(path, id, width, height);
 		if (hbmp == NULL)
 		{
@@ -54,6 +57,9 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 	}
 
 	hbmp = FromIcon(icon, width, height);
+
+	LogFile::Write() << "LoadFromIconFile(" << path << ", " << id << ", {" << width << ", " << height << "}) HBMP = " << reinterpret_cast<uintptr_t>(hbmp);
+
 	DestroyIcon(icon);
 	if (hbmp == NULL)
 	{

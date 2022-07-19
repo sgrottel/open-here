@@ -233,6 +233,7 @@ limitations under the License.
                     <Separator Height="2" Margin="4,0"></Separator>
                     <CheckBox IsChecked="{Binding Config.PlayToolStartSound}" Margin="4,2">Play Sound on Tool Start</CheckBox>
                     <CheckBox IsChecked="{Binding Config.StartToolToFront}" Margin="4,2">Bring Tool Window to Front on Start</CheckBox>
+                    <CheckBox IsChecked="{Binding Config.DoLog}" Margin="4,2">Write Log Files</CheckBox>
                     <Separator Height="2" Margin="4,0"></Separator>
                     <Button Click="ButtonOpenConfigPath_Click" HorizontalAlignment="Left" Margin="4,2" Padding="4,1">Open Config Path...</Button>
                 </StackPanel>

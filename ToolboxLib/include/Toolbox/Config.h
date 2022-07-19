@@ -37,6 +37,8 @@ namespace toolbox
 		inline void SetPlayToolStartSound(bool playToolStartSound) { m_playToolStartSound = playToolStartSound; }
 		inline bool GetStartToolToFront() const { return m_startToolToFront; }
 		inline void SetStartToolToFront(bool startToolToFront) { m_startToolToFront = startToolToFront; }
+		inline bool GetDoLog() const { return m_doLog; }
+		inline void SetDoLog(bool doLog) { m_doLog = doLog; }
 
 	private:
 		constexpr static const wchar_t* configFilename = L"config.json";
@@ -45,6 +47,7 @@ namespace toolbox
 		bool m_playStartSound{ false };
 		bool m_playToolStartSound{ false };
 		bool m_startToolToFront{ true };
+		bool m_doLog{ false };
 
 	};
 
