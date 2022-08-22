@@ -130,7 +130,7 @@ std::mutex LogFile::m_writeLock{};
 
 LogFile::Line::Line()
 {
-
+	m_stream << "[" << static_cast<int>(GetCurrentThreadId()) << "] ";
 }
 
 

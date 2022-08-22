@@ -53,7 +53,7 @@ namespace toolbox
 	private:
 		void AssertSize(HICON& icon, int width, int height) const;
 
-		HICON m_icon{ NULL };
+		HICON m_onlyIcon{ NULL };
 		HMODULE m_lib{ NULL };
 		std::vector<uint32_t> m_ids;
 	};

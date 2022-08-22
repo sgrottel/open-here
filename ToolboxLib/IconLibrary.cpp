@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #include "Toolbox/IconLibrary.h"
+#include "Toolbox/LogFile.h"
 
 #include <stdexcept>
 
@@ -47,16 +48,19 @@ bool IconLibrary::Open(LPCWSTR filename, int width, int height)
 	Close();
 
 	// try load file, e.g. '.ico' file
-	m_icon = (HICON)LoadImageW(NULL, filename, IMAGE_ICON, width, height, LR_LOADFROMFILE);
-	if (m_icon)
+	m_onlyIcon = (HICON)LoadImageW(NULL, filename, IMAGE_ICON, width, height, LR_LOADFROMFILE);
+	if (m_onlyIcon)
 	{
-		AssertSize(m_icon, width, height);
+		LogFile::Write() << "IconLibrary::Open(" << filename << ") => m_onlyIcon = " << reinterpret_cast<uintptr_t>(m_onlyIcon);
+
+		AssertSize(m_onlyIcon, width, height);
 		m_ids.push_back(0u);
 		return true;
 	}
 
 	// try load as binary resource, e.g. '.exe' or '.dll'
 	BOOL hasMod = GetModuleHandleExW(0, filename, &m_lib);
+	LogFile::Write() << "IconLibrary::Open(" << filename << ") : GetModuleHandleExW => " << hasMod << ", " << reinterpret_cast<uintptr_t>(m_lib);
 	if (!hasMod || !m_lib)
 	{
 		m_lib = LoadLibraryExW(filename, NULL, LOAD_LIBRARY_AS_DATAFILE);
@@ -66,6 +70,7 @@ bool IconLibrary::Open(LPCWSTR filename, int width, int height)
 		// throw std::runtime_error("Unable to load the specified file");
 		return false;
 	}
+	LogFile::Write() << "IconLibrary::Open(" << filename << ") : LoadLibraryExW => " << reinterpret_cast<uintptr_t>(m_lib);
 
 	struct IconNameSearch {
 		std::vector<uint32_t>& ids;
@@ -92,10 +97,10 @@ bool IconLibrary::Open(LPCWSTR filename, int width, int height)
 
 void IconLibrary::Close()
 {
-	if (m_icon != NULL)
+	if (m_onlyIcon != NULL)
 	{
-		DestroyIcon(m_icon);
-		m_icon = NULL;
+		DestroyIcon(m_onlyIcon);
+		m_onlyIcon = NULL;
 	}
 	if (m_lib != NULL)
 	{
@@ -107,9 +112,10 @@ void IconLibrary::Close()
 
 HICON IconLibrary::GetIcon(uint32_t id, int width, int height) const
 {
-	if (m_icon != NULL)
+	if (m_onlyIcon != NULL)
 	{
-		return m_icon;
+		// return a copy, since the caller is expected to destroy the returned HICON
+		return CopyIcon(m_onlyIcon);
 	}
 
 	if (m_lib != NULL)
@@ -121,7 +127,9 @@ HICON IconLibrary::GetIcon(uint32_t id, int width, int height) const
 			width,
 			height,
 			LR_SHARED));
+		LogFile::Write() << "IconLibrary::GetIcon(" << id << ", " << width << ", " << height << ") : LoadImageW(" << reinterpret_cast<uintptr_t>(m_lib) << ") => " << reinterpret_cast<uintptr_t>(icon);
 		AssertSize(icon, width, height);
+		LogFile::Write() << "IconLibrary::GetIcon(" << id << ", " << width << ", " << height << ") : AssertSize => " << reinterpret_cast<uintptr_t>(icon);
 		return icon;
 	}
 
