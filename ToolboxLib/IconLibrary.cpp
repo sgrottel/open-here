@@ -18,6 +18,7 @@
 
 #include <stdexcept>
 #include <mutex>
+#include <future>
 
 using namespace openhere::toolbox;
 
@@ -38,6 +39,8 @@ namespace
 	}
 
 	std::mutex g_iconLibraryLock;
+
+	std::vector<std::future<void> > g_delayedFrees;
 
 }
 
@@ -68,7 +71,7 @@ bool IconLibrary::Open(LPCWSTR filename, int width, int height)
 		LogFile::Write() << "IconLibrary::Open(" << filename << ") : GetModuleHandleExW => " << hasMod << ", " << reinterpret_cast<uintptr_t>(m_lib);
 		if (!hasMod || !m_lib)
 		{
-			m_lib = LoadLibraryExW(filename, NULL, LOAD_LIBRARY_AS_DATAFILE);
+			m_lib = LoadLibraryExW(filename, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
 		}
 		if (!m_lib)
 		{
@@ -111,8 +114,18 @@ void IconLibrary::Close()
 	}
 	if (m_lib != NULL)
 	{
-		LogFile::Write() << "IconLibrary::Close() : FreeLibrary(" << reinterpret_cast<uintptr_t>(m_lib) << ")";
-		FreeLibrary(m_lib);
+		// delaying FreeLibrary
+		// There is an issue where an old icon is loaded, likely due to an old wrongly mapped data dll still being used.
+		// Delaying the free of those libraries should force them to stay in separate memory spaces during app initialization
+		HMODULE hLib = m_lib;
+		g_delayedFrees.push_back(std::move(
+			std::async(std::launch::async,
+				[hLib] {
+					std::this_thread::sleep_for(std::chrono::seconds(2));
+					LogFile::Write() << "IconLibrary::Close() : FreeLibrary(" << reinterpret_cast<uintptr_t>(hLib) << ")";
+					FreeLibrary(hLib);
+				})
+		));
 		m_lib = NULL;
 	}
 	m_ids.clear();
