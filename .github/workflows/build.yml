@@ -15,7 +15,12 @@
 #
 name: MSBuild
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -40,7 +45,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
     - name: Setup VSTest Path
-      uses: darenm/Setup-VSTest@v1
+      uses: darenm/Setup-VSTest@v1.2
 
     - name: Prepare Environment
       shell: pwsh
@@ -87,6 +92,23 @@ jobs:
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=${{matrix.platform}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Create ComponentSource Manifest
+      shell: pwsh
+      run: |
+        @{
+        "_type" = "ComponentSourceManifest";
+        "_version" = 1;
+        "components" = @( @{
+            "name" = "Open Here";
+            "source" = @( @{
+                "type" = "git";
+                "url" = "https://github.com/sgrottel/open-here.git";
+                "hash" = "${{github.sha}}";
+                "version" = "${{env.FULL_VERSION_NUMBER}}";
+                "subset" = "github releases"
+            } )
+        } ) } | ConvertTo-Json -Depth 10 > "${{env.ARTIFACT_PATH}}/ComponentSource.json"
 
     - name: Test ToolboxLib
       working-directory: ${{env.GITHUB_WORKSPACE}}

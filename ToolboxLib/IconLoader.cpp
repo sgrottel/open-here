@@ -44,7 +44,7 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 	lib.Open(path, width, height);
 	HICON icon = lib.GetIcon(static_cast<uint32_t>(id), width, height);
 
-	LogFile::Write() << "LoadFromIconFile(" << path << ", " << id << ", {" << width << ", " << height << "}) HCION = " << reinterpret_cast<uintptr_t>(icon);
+	LogFile::Write() << "LoadFromIconFile(" << path << ", " << id << ", {" << width << ", " << height << "}) HICON = " << reinterpret_cast<uintptr_t>(icon);
 
 	if (!icon)
 	{

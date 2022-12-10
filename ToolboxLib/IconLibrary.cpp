@@ -14,8 +14,11 @@
 // limitations under the License.
 //
 #include "Toolbox/IconLibrary.h"
+#include "Toolbox/LogFile.h"
 
 #include <stdexcept>
+#include <mutex>
+#include <future>
 
 using namespace openhere::toolbox;
 
@@ -35,6 +38,10 @@ namespace
 		return { bmp.bmWidth, bmp.bmHeight };
 	}
 
+	std::mutex g_iconLibraryLock;
+
+	std::vector<std::future<void> > g_delayedFrees;
+
 }
 
 IconLibrary::~IconLibrary()
@@ -45,61 +52,80 @@ IconLibrary::~IconLibrary()
 bool IconLibrary::Open(LPCWSTR filename, int width, int height)
 {
 	Close();
-
-	// try load file, e.g. '.ico' file
-	m_icon = (HICON)LoadImageW(NULL, filename, IMAGE_ICON, width, height, LR_LOADFROMFILE);
-	if (m_icon)
 	{
-		AssertSize(m_icon, width, height);
-		m_ids.push_back(0u);
-		return true;
-	}
+		std::lock_guard<std::mutex> lock{ g_iconLibraryLock };
 
-	// try load as binary resource, e.g. '.exe' or '.dll'
-	BOOL hasMod = GetModuleHandleExW(0, filename, &m_lib);
-	if (!hasMod || !m_lib)
-	{
-		m_lib = LoadLibraryExW(filename, NULL, LOAD_LIBRARY_AS_DATAFILE);
-	}
-	if (!m_lib)
-	{
-		// throw std::runtime_error("Unable to load the specified file");
-		return false;
-	}
+		// try load file, e.g. '.ico' file
+		m_onlyIcon = (HICON)LoadImageW(NULL, filename, IMAGE_ICON, width, height, LR_LOADFROMFILE);
+		if (m_onlyIcon)
+		{
+			LogFile::Write() << "IconLibrary::Open(" << filename << ") => m_onlyIcon = " << reinterpret_cast<uintptr_t>(m_onlyIcon);
 
-	struct IconNameSearch {
-		std::vector<uint32_t>& ids;
-	};
-	IconNameSearch search{ m_ids };
-
-	EnumResourceNamesW(m_lib, RT_GROUP_ICON,
-		[](HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam) -> BOOL {
-			IconNameSearch* search = reinterpret_cast<IconNameSearch*>(lParam);
-			if (IS_INTRESOURCE(lpName))
-			{
-				search->ids.push_back(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(lpName)));
-			}
-			else
-			{
-				// If name-based resources ever become a thing, then this can be refactored
-				search->ids.push_back(static_cast<uint32_t>(-1));
-			}
+			AssertSize(m_onlyIcon, width, height);
+			m_ids.push_back(0u);
 			return true;
-		}, reinterpret_cast<LONG_PTR>(&search));
+		}
 
+		// try load as binary resource, e.g. '.exe' or '.dll'
+		BOOL hasMod = GetModuleHandleExW(0, filename, &m_lib);
+		LogFile::Write() << "IconLibrary::Open(" << filename << ") : GetModuleHandleExW => " << hasMod << ", " << reinterpret_cast<uintptr_t>(m_lib);
+		if (!hasMod || !m_lib)
+		{
+			m_lib = LoadLibraryExW(filename, NULL, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+		}
+		if (!m_lib)
+		{
+			// throw std::runtime_error("Unable to load the specified file");
+			return false;
+		}
+		LogFile::Write() << "IconLibrary::Open(" << filename << ") : LoadLibraryExW => " << reinterpret_cast<uintptr_t>(m_lib);
+
+		struct IconNameSearch {
+			std::vector<uint32_t>& ids;
+		};
+		IconNameSearch search{ m_ids };
+
+		EnumResourceNamesW(m_lib, RT_GROUP_ICON,
+			[](HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam) -> BOOL {
+				IconNameSearch* search = reinterpret_cast<IconNameSearch*>(lParam);
+				if (IS_INTRESOURCE(lpName))
+				{
+					search->ids.push_back(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(lpName)));
+				}
+				else
+				{
+					// If name-based resources ever become a thing, then this can be refactored
+					search->ids.push_back(static_cast<uint32_t>(-1));
+				}
+				return true;
+			}, reinterpret_cast<LONG_PTR>(&search));
+
+	}
 	return true;
 }
 
 void IconLibrary::Close()
 {
-	if (m_icon != NULL)
+	std::lock_guard<std::mutex> lock{ g_iconLibraryLock };
+	if (m_onlyIcon != NULL)
 	{
-		DestroyIcon(m_icon);
-		m_icon = NULL;
+		DestroyIcon(m_onlyIcon);
+		m_onlyIcon = NULL;
 	}
 	if (m_lib != NULL)
 	{
-		FreeLibrary(m_lib);
+		// delaying FreeLibrary
+		// There is an issue where an old icon is loaded, likely due to an old wrongly mapped data dll still being used.
+		// Delaying the free of those libraries should force them to stay in separate memory spaces during app initialization
+		HMODULE hLib = m_lib;
+		g_delayedFrees.push_back(std::move(
+			std::async(std::launch::async,
+				[hLib] {
+					std::this_thread::sleep_for(std::chrono::seconds(2));
+					LogFile::Write() << "IconLibrary::Close() : FreeLibrary(" << reinterpret_cast<uintptr_t>(hLib) << ")";
+					FreeLibrary(hLib);
+				})
+		));
 		m_lib = NULL;
 	}
 	m_ids.clear();
@@ -107,9 +133,11 @@ void IconLibrary::Close()
 
 HICON IconLibrary::GetIcon(uint32_t id, int width, int height) const
 {
-	if (m_icon != NULL)
+	std::lock_guard<std::mutex> lock{ g_iconLibraryLock };
+	if (m_onlyIcon != NULL)
 	{
-		return m_icon;
+		// return a copy, since the caller is expected to destroy the returned HICON
+		return CopyIcon(m_onlyIcon);
 	}
 
 	if (m_lib != NULL)
@@ -121,7 +149,9 @@ HICON IconLibrary::GetIcon(uint32_t id, int width, int height) const
 			width,
 			height,
 			LR_SHARED));
+		LogFile::Write() << "IconLibrary::GetIcon(" << id << ", " << width << ", " << height << ") : LoadImageW(" << reinterpret_cast<uintptr_t>(m_lib) << ") => " << reinterpret_cast<uintptr_t>(icon);
 		AssertSize(icon, width, height);
+		LogFile::Write() << "IconLibrary::GetIcon(" << id << ", " << width << ", " << height << ") : AssertSize => " << reinterpret_cast<uintptr_t>(icon);
 		return icon;
 	}
 
@@ -130,6 +160,7 @@ HICON IconLibrary::GetIcon(uint32_t id, int width, int height) const
 
 void IconLibrary::AssertSize(HICON& icon, int width, int height) const
 {
+	// `g_iconLibraryLock` is assumed to be locked
 	SIZE iconSize = GetIconSize(icon);
 	if (iconSize.cx > 0 && iconSize.cy > 0 && (iconSize.cx != width || iconSize.cy != height))
 	{
