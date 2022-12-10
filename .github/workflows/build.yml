@@ -45,7 +45,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
     - name: Setup VSTest Path
-      uses: darenm/Setup-VSTest@v1
+      uses: darenm/Setup-VSTest@v1.2
 
     - name: Prepare Environment
       shell: pwsh
