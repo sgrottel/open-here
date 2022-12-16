@@ -26,9 +26,6 @@ env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: .
 
-# permissions:
-#   contents: read
-
 jobs:
   build:
     strategy:
@@ -93,9 +90,29 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=${{matrix.platform}} ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Create ComponentSource Manifest
+    - name: Test ToolboxLib
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: vstest.console.exe ToolboxLibUnitTest/${{env.ARTIFACT_PATH}}/ToolboxLibUnitTest.dll
+
+    - name: Test Console App
+      shell: pwsh
+      run: ConsoleApp\runtest.ps1 "${{env.ARTIFACT_PATH}}" "${{github.workspace}}"
+
+    - name: Finalize Release Package
       shell: pwsh
       run: |
+        mkdir bin/OpenHere
+        mkdir bin/OpenHere/OpenHereSettings
+        copy "${{env.ARTIFACT_PATH}}/*" "bin/OpenHere/OpenHereSettings" -Exclude "*.pdb"
+        move bin/OpenHere/OpenHereSettings/OpenHere.exe bin/OpenHere
+        move bin/OpenHere/OpenHereSettings/OpenHereCon.exe bin/OpenHere
+        copy LICENSE bin/OpenHere
+        $lines = [System.Collections.ArrayList](get-content README.md)
+        $lines.Insert(2, "Version ${{env.FULL_VERSION_NUMBER}}");
+        $newLines = @()
+        $inc = $true
+        $lines | foreach { if ($_ -match "\s*<!---\s+START\s+STRIP\s+-->\s*") { $inc = $false; } elseif ($_ -match "\s*<!---\s+END\s+STRIP\s+-->\s*") { $inc = $true } elseif ($inc) { $newLines += $_ } }
+        set-content bin\OpenHere\README.md $newLines
         @{
         "_type" = "ComponentSourceManifest";
         "_version" = 1;
@@ -108,20 +125,12 @@ jobs:
                 "version" = "${{env.FULL_VERSION_NUMBER}}";
                 "subset" = "github releases"
             } )
-        } ) } | ConvertTo-Json -Depth 10 > "${{env.ARTIFACT_PATH}}/ComponentSource.json"
-
-    - name: Test ToolboxLib
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: vstest.console.exe ToolboxLibUnitTest/${{env.ARTIFACT_PATH}}/ToolboxLibUnitTest.dll
-
-    - name: Test Console App
-      shell: pwsh
-      run: ConsoleApp\runtest.ps1 "${{env.ARTIFACT_PATH}}" "${{github.workspace}}"
+        } ) } | ConvertTo-Json -Depth 10 > "bin/OpenHere/ComponentSource.json"
 
     - name: Upload Artifacts
-      # if: ${{ matrix.configuration == 'Release' }}
+      if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
       uses: actions/upload-artifact@v3.1.0
       with:
         name: open-here-${{env.FULL_VERSION_NUMBER}}-${{matrix.platform}}-${{matrix.configuration}}
-        path: ${{env.ARTIFACT_PATH}}
+        path: bin/OpenHere
         if-no-files-found: error

@@ -3,21 +3,23 @@ SG Toolbox' Open Here Utility
 
 This tool allows to open a program "where" the user is.
 
-> Build status:
->
-> Stable Main: [![Main Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/sgrottel/open-here/actions/workflows/build.yml?query=branch%3Amain)&emsp;|&emsp;
-> Development: [![Develop Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/sgrottel/open-here/actions/workflows/build.yml?query=branch%3Adevelop)
+<!--- START STRIP -->
+[![Build](https://github.com/sgrottel/open-here/actions/workflows/build.yml/badge.svg)](https://github.com/sgrottel/open-here/actions/workflows/build.yml)
+[![GitHub](https://img.shields.io/github/license/sgrottel/open-here)](./LICENSE)
 
+<!--- END STRIP -->
 It detects running instances of the Windows File Explorer.
 From the top-most instance it, fetches the opened path, and any selected files.
 You can use the command line application to retrieve this information.
 Or you can use the GUI application, displaying a tool window to select and open one of up to twelve configured tools.
+<!--- START STRIP -->
 
 Read more about:
 * [GUI Application](./doc/toolbox_app.md)
 * [GUI Settings Application](./doc/settings_app.md)
 * [Command Line Application](./doc/console_app.md)
 * [How to build the Software](./HowtoBuild.md)
+<!--- END STRIP -->
 
 
 ## Infos and Contact
