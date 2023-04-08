@@ -48,6 +48,9 @@
     <ClCompile Include="LogFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicIconProviderLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Toolbox\ToolInfoListLoader.h">
@@ -79,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="include\Toolbox\LogFile.h">
       <Filter>Public Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicIconProviderLoader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

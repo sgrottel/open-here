@@ -56,6 +56,7 @@ namespace toolbox
 		inline std::wstring const& GetIconFile() const { return m_iconFile; }
 		inline void SetIconFile(std::wstring const& file) { m_iconFile = file; }
 
+		// A negative ID will trigger the dynmamic-icon code path
 		inline int GetIconID() const { return m_iconId; }
 		inline void SetIconID(int id) { m_iconId = id; }
 

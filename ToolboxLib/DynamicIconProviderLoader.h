@@ -1,5 +1,5 @@
 // Open Here
-// Copyright 2022 SGrottel (https://www.sgrottel.de)
+// Copyright 2023 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,12 +13,29 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
-
 #pragma once
 
-#define OPEN_HERE_VER_MAJOR	1
-#define OPEN_HERE_VER_MINOR	1
-#define OPEN_HERE_VER_PATCH	0
-#define OPEN_HERE_VER_BUILD	0
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
-#define OPEN_HERE_VER_YEARSTR	"2022-2023"
+#include <string>
+
+namespace openhere
+{
+namespace toolbox
+{
+
+
+	class DynamicIconProviderLoader
+	{
+	public:
+
+		bool Load(std::wstring const& path);
+
+		HBITMAP Generate(SIZE const& size);
+
+	private:
+	};
+
+}
+}
