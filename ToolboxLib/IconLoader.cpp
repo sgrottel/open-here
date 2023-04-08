@@ -18,6 +18,7 @@
 #include "Toolbox/IconLibrary.h"
 #include "IconFallbackCache.h"
 #include "Toolbox/LogFile.h"
+#include "DynamicIconProviderLoader.h"
 
 #include <vector>
 #include <stdexcept>
@@ -39,6 +40,29 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 	int const &width = size.cx;
 	int const &height = size.cy;
 	HBITMAP hbmp = NULL;
+
+	if (id < 0)
+	{
+		LogFile::Write() << "Trying to load as dynamic icon provider: " << path;
+		DynamicIconProviderLoader dynIcon;
+		if (dynIcon.Load(path))
+		{
+			hbmp = dynIcon.Generate(size);
+			if (hbmp != NULL)
+			{
+				LogFile::Write() << "Icon generated";
+				return hbmp;
+			}
+			else
+			{
+				LogFile::Write() << "Icon generation failed";
+			}
+		}
+		else
+		{
+			LogFile::Write() << "Dynamic icon provider load failed";
+		}
+	}
 
 	IconLibrary lib;
 	lib.Open(path, width, height);

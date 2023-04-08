@@ -1,5 +1,5 @@
 // Open Here
-// Copyright 2022 SGrottel (https://www.sgrottel.de)
+// Copyright 2023 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
 // limitations under the License.
 //
 
-#pragma once
+#ifdef APSTUDIO_INVOKED
+// This will prevent the VC++ Resource Editor user from saving this file
+#error "This file can be edited in code. Do not open in Visual Studio Resource Editor."
+1 TEXTINCLUDE DISCARDABLE
+BEGIN
+"< This file can be edited in code. Do not open in Visual Studio Resource Editor. >\0"
+END
+#endif    // APSTUDIO_INVOKED
 
-#define OPEN_HERE_VER_MAJOR	1
-#define OPEN_HERE_VER_MINOR	1
-#define OPEN_HERE_VER_PATCH	0
-#define OPEN_HERE_VER_BUILD	0
-
-#define OPEN_HERE_VER_YEARSTR	"2022-2023"
+1 ICON "../imgs/openhere.ico"
