@@ -50,8 +50,17 @@ HBITMAP IconLoader::LoadFromIconFile(LPCWSTR path, int id, SIZE const& size)
 			hbmp = dynIcon.Generate(size);
 			if (hbmp != NULL)
 			{
+				LogFile::Write() << "Icon generated";
 				return hbmp;
 			}
+			else
+			{
+				LogFile::Write() << "Icon generation failed";
+			}
+		}
+		else
+		{
+			LogFile::Write() << "Dynamic icon provider load failed";
 		}
 	}
 

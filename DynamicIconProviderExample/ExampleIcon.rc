@@ -13,34 +13,14 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
-#pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#ifdef APSTUDIO_INVOKED
+// This will prevent the VC++ Resource Editor user from saving this file
+#error "This file can be edited in code. Do not open in Visual Studio Resource Editor."
+1 TEXTINCLUDE DISCARDABLE
+BEGIN
+"< This file can be edited in code. Do not open in Visual Studio Resource Editor. >\0"
+END
+#endif    // APSTUDIO_INVOKED
 
-#include <string>
-
-namespace openhere
-{
-namespace toolbox
-{
-
-
-	class DynamicIconProviderLoader
-	{
-	public:
-		~DynamicIconProviderLoader();
-
-		bool Load(std::wstring const& path);
-
-		HBITMAP Generate(SIZE const& size);
-
-	private:
-		typedef int (*GeneratorFuncType)(int width, int height, unsigned char* bgradata);
-
-		HMODULE m_lib = 0;
-		GeneratorFuncType m_func = nullptr;
-	};
-
-}
-}
+1 ICON "../imgs/openhere.ico"

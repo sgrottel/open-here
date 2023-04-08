@@ -19,28 +19,37 @@
 
 using namespace openhere::toolbox;
 
+DynamicIconProviderLoader::~DynamicIconProviderLoader()
+{
+	m_func = nullptr;
+	if (m_lib != 0)
+	{
+		FreeLibrary(m_lib);
+	}
+}
+
 bool DynamicIconProviderLoader::Load(std::wstring const& path)
 {
-	// TODO: Implement
-	return true;
+	m_lib = LoadLibraryW(path.c_str());
+	if (m_lib != nullptr)
+	{
+		m_func = reinterpret_cast<GeneratorFuncType>(GetProcAddress(m_lib, "openhere_generateicon"));
+	}
+	return m_func != nullptr;
 }
 
 HBITMAP DynamicIconProviderLoader::Generate(SIZE const& size)
 {
+	if (m_func == nullptr) return NULL;
+
 	std::vector<uint8_t> bgraData;
 	bgraData.resize(size.cx * size.cy * 4);
 
-
-	// TODO: Implement
-	for (int i = 0; i < bgraData.size(); i += 4)
+	if ((*m_func)(size.cx, size.cy, bgraData.data()) == 0)
 	{
-		uint8_t* c = bgraData.data() + i;
-		c[0] = 255;
-		c[1] = 0;
-		c[2] = 0;
-		c[3] = 255;
+		// Function returned FALSE = failure
+		return NULL;
 	}
-
 
 	BITMAPINFOHEADER bmih{ 0 };
 	bmih.biSize = sizeof(BITMAPINFOHEADER);
