@@ -125,7 +125,7 @@ namespace OpenHere.SettingsApp
 
         private void ButtonBrowse_Click(object sender, RoutedEventArgs e)
         {
-			OpenFileDialog ofd = CreateOpenFileDialog("", Filename);
+            OpenFileDialog ofd = CreateOpenFileDialog("", Filename);
             ofd.Title = Title;
             if (ofd.ShowDialog(this) ?? false)
             {

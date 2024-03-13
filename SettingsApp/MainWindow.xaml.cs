@@ -614,22 +614,17 @@ namespace OpenHere.SettingsApp
             SettingsBase.ToolStartConfig? sel = (lvi != null) ? StartConfigList.ItemContainerGenerator.ItemFromContainer(lvi) as SettingsBase.ToolStartConfig : null;
             if (tool == null || sel == null) return;
 
-            // TODO: Implement using folder picker
-            //OpenFileDialog ofd = new();
-            //ofd.Title = tool.Title + " Working Directory...";
-            //ofd.
-            //ofd.IsFolderPicker = true;
-            //ofd.RestoreDirectory = false;
-            //if (!string.IsNullOrWhiteSpace(sel.WorkingDirectory))
-            //{
-            //    ofd.InitialDirectory = sel.WorkingDirectory;
-            //}
-
-            //if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
-            //{
-            //    sel.WorkingDirectory = ofd.FileName;
-            //}
-
+            var dlg = new FolderPicker();
+            dlg.Title = tool.Title + " Working Directory...";
+            dlg.ForceFileSystem = true;
+            if (!string.IsNullOrWhiteSpace(sel.WorkingDirectory))
+            {
+                dlg.InputPath = sel.WorkingDirectory;
+            }
+            if (dlg.ShowDialog() == true)
+            {
+                sel.WorkingDirectory = dlg.ResultPath;
+            }
         }
 
         private void ButtonBrowseToolIcon_Click(object sender, RoutedEventArgs e)
