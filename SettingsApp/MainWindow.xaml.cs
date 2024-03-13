@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 using Microsoft.Win32;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -192,15 +191,13 @@ namespace OpenHere.SettingsApp
 
         private void ButtonImport_Click(object sender, RoutedEventArgs e)
         {
-            CommonOpenFileDialog ofd = new CommonOpenFileDialog();
+            OpenFileDialog ofd = new();
             ofd.Title = "Open Here Import...";
             ofd.RestoreDirectory = false;
-            ofd.EnsureFileExists = true;
-            ofd.AllowNonFileSystemItems = false;
-            ofd.Filters.Add(new CommonFileDialogFilter("Xml Files", ".xml"));
-            ofd.Filters.Add(new CommonFileDialogFilter("All Files", "*.*"));
+            ofd.CheckFileExists = true;
+            ofd.Filter = "Xml Files|*.xml|All Files|*.*";
 
-            if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            if (ofd.ShowDialog(this) ?? false)
             {
                 try
                 {
@@ -232,14 +229,13 @@ namespace OpenHere.SettingsApp
 
         private void ButtonExport_Click(object sender, RoutedEventArgs e)
         {
-            CommonSaveFileDialog sfd = new CommonSaveFileDialog();
+            SaveFileDialog sfd = new();
             sfd.Title = "Open Here Export...";
             sfd.RestoreDirectory = false;
-            sfd.EnsurePathExists = true;
-            sfd.Filters.Add(new CommonFileDialogFilter("Xml Files", ".xml"));
-            sfd.Filters.Add(new CommonFileDialogFilter("All Files", "*.*"));
+            sfd.CheckPathExists = true;
+            sfd.Filter = "Xml Files|*.xml|All Files|*.*";
 
-            if (sfd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            if (sfd.ShowDialog(this) ?? false)
             {
                 ImportExport ie = new ImportExport();
                 ie.Config = Config;
@@ -596,16 +592,16 @@ namespace OpenHere.SettingsApp
             SettingsBase.ToolStartConfig? sel = (lvi != null) ? StartConfigList.ItemContainerGenerator.ItemFromContainer(lvi) as SettingsBase.ToolStartConfig : null;
             if (tool == null || sel == null) return;
 
-            CommonOpenFileDialog ofd = new CommonOpenFileDialog();
+            OpenFileDialog ofd = new();
             ofd.Title = tool.Title + " Executable...";
-            ofd.DefaultFileName = sel.Executable;
+            ofd.FileName = sel.Executable;
             ofd.RestoreDirectory = false;
             if (!string.IsNullOrWhiteSpace(sel.Executable))
             {
                 ofd.InitialDirectory = System.IO.Path.GetDirectoryName(sel.Executable);
             }
 
-            if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            if (ofd.ShowDialog(this) ?? false)
             {
                 sel.Executable = ofd.FileName;
             }
@@ -618,19 +614,21 @@ namespace OpenHere.SettingsApp
             SettingsBase.ToolStartConfig? sel = (lvi != null) ? StartConfigList.ItemContainerGenerator.ItemFromContainer(lvi) as SettingsBase.ToolStartConfig : null;
             if (tool == null || sel == null) return;
 
-            CommonOpenFileDialog ofd = new CommonOpenFileDialog();
-            ofd.Title = tool.Title + " Working Directory...";
-            ofd.IsFolderPicker = true;
-            ofd.RestoreDirectory = false;
-            if (!string.IsNullOrWhiteSpace(sel.WorkingDirectory))
-            {
-                ofd.InitialDirectory = sel.WorkingDirectory;
-            }
+            // TODO: Implement using folder picker
+            //OpenFileDialog ofd = new();
+            //ofd.Title = tool.Title + " Working Directory...";
+            //ofd.
+            //ofd.IsFolderPicker = true;
+            //ofd.RestoreDirectory = false;
+            //if (!string.IsNullOrWhiteSpace(sel.WorkingDirectory))
+            //{
+            //    ofd.InitialDirectory = sel.WorkingDirectory;
+            //}
 
-            if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
-            {
-                sel.WorkingDirectory = ofd.FileName;
-            }
+            //if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            //{
+            //    sel.WorkingDirectory = ofd.FileName;
+            //}
 
         }
 
@@ -639,8 +637,8 @@ namespace OpenHere.SettingsApp
             ToolInfoView? tool = ToolsList.SelectedItem as ToolInfoView;
             if (tool == null) return;
 
-            CommonOpenFileDialog ofd = SelectIconDialog.CreateOpenFileDialog(tool.Title, tool.IconFile);
-            if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            OpenFileDialog ofd = SelectIconDialog.CreateOpenFileDialog(tool.Title, tool.IconFile);
+            if (ofd.ShowDialog(this) ?? false)
             {
                 try
                 {

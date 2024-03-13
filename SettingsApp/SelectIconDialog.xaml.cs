@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -100,24 +100,18 @@ namespace OpenHere.SettingsApp
             return toolTitle + " Select Icon...";
         }
 
-        public static CommonOpenFileDialog CreateOpenFileDialog(string toolTitle, string filename)
+        public static OpenFileDialog CreateOpenFileDialog(string toolTitle, string filename)
         {
-            CommonOpenFileDialog ofd = new CommonOpenFileDialog();
+            OpenFileDialog ofd = new();
             ofd.Title = DialogTitle(toolTitle);
-            ofd.DefaultFileName = filename;
+            ofd.FileName = filename;
             if (!string.IsNullOrWhiteSpace(filename))
             {
                 ofd.InitialDirectory = System.IO.Path.GetDirectoryName(filename);
             }
             ofd.RestoreDirectory = true;
-            ofd.EnsureFileExists = true;
-            ofd.AllowNonFileSystemItems = false;
-            ofd.Filters.Add(new CommonFileDialogFilter("Supported Files", ".ico;.exe;.dll"));
-            ofd.Filters.Add(new CommonFileDialogFilter("Icon Files", ".ico"));
-            ofd.Filters.Add(new CommonFileDialogFilter("Executables Files", ".exe"));
-            ofd.Filters.Add(new CommonFileDialogFilter("Dynamic Library Files", ".dll"));
-            ofd.Filters.Add(new CommonFileDialogFilter("All Files", "*.*"));
-
+            ofd.CheckFileExists = true;
+            ofd.Filter = "Supported Files|*.ico;*.exe;*.dll|Icon Files|*.ico|Executables Files|*.exe|Dynamic Library Files|*.dll|All Files|*.*";
             return ofd;
         }
 
@@ -131,9 +125,9 @@ namespace OpenHere.SettingsApp
 
         private void ButtonBrowse_Click(object sender, RoutedEventArgs e)
         {
-            CommonOpenFileDialog ofd = CreateOpenFileDialog("", Filename);
+			OpenFileDialog ofd = CreateOpenFileDialog("", Filename);
             ofd.Title = Title;
-            if (ofd.ShowDialog(this) == CommonFileDialogResult.Ok)
+            if (ofd.ShowDialog(this) ?? false)
             {
                 Filename = ofd.FileName;
             }
