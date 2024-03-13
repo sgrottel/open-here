@@ -30,9 +30,9 @@ $lines1
 Write-Host
 Write-Host "Starting Explorer #1"
 $dir = Resolve-Path $binPath
-Write-Host "/E,`"$dir`""
+Write-Host "/E, `"$dir`""
 $exps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
-explorer.exe "/E,`"$dir`""
+explorer.exe "/E," "$dir"
 for ($i = 0; $i -lt 50; ++$i) {
     $nexps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
     if ($nexps.length -gt $exps.length) {
@@ -64,9 +64,9 @@ if (($m -is [string]) -or (($m -is [array]) -and ($m.length -gt 0))) {
 Write-Host
 Write-Host "Starting Explorer #2"
 $dir = Resolve-Path $repoPath
-Write-Host "/SELECT,`"$dir\Version.h`""
+Write-Host "/SELECT, `"$dir\Version.h`""
 $exps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
-explorer.exe "/SELECT,`"$dir\Version.h`""
+explorer.exe "/SELECT," "$dir\Version.h"
 for ($i = 0; $i -lt 50; ++$i) {
     $nexps = Get-Process -Name '*explorer*' | Where-Object { $_.MainWindowHandle -gt 0 }
     if ($nexps.length -gt $exps.length) {

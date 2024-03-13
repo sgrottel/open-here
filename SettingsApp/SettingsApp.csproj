@@ -32,10 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SettingsBaseLib\SettingsBaseLib.vcxproj" />
   </ItemGroup>
 
