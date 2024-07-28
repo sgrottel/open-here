@@ -5,6 +5,7 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{236671A1-19F3-422A-ACE2-128A10EA451E}"
 	ProjectSection(SolutionItems) = preProject
+		HowtoBuild.md = HowtoBuild.md
 		LICENSE = LICENSE
 		README.md = README.md
 		Version.h = Version.h
@@ -26,6 +27,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github-workflows", ".github-workflows", "{A3B7A256-BA4B-4754-87E8-5950B93231D9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\dependabot.yml = .github\dependabot.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SettingsApp", "SettingsApp\SettingsApp.csproj", "{09DDA030-DE71-43C6-806A-FCAEE41F1984}"

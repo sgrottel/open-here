@@ -6,6 +6,22 @@
 * Windows SDK 10.0 (latest version)
 * C++ Windows Desktop Development Preset in Visual Studio Installer recommended
 
+## Project Structure
+There are several projects in the solution:
+* `ConsoleApp` -- A console application for end user use, which return data on found File Explorer processes
+	* Uses: FileExplorerDetectorLib
+* `DynamicIconProviderExample` -- Example project on how to write a dynamic icon provider for the ToolBox app
+* `FileExplorerDetectorLib` -- The core implementation to detect File Explorer processes and their states.
+* `SettingsApp` -- The graphical application for end user use, to configure the ToolBox app
+	* Uses: SettingsBaseLib
+* `SettingsBaseLib` -- A managed c++ library to act as bridge for the SettingsApp and the libraries implemented in native c++
+	* Uses: FileExplorerDetectorLib, ToolboxLib
+* `ToolboxApp` -- The graphical application for end user use, showing the configured actions to be invoked no paths and files selected in found File Explorer processes
+	* Uses: FileExplorerDetectorLib, ToolboxLib
+* `ToolboxLib` -- Base library implementing the functional core of the Toolbox app
+* `ToolboxLibUnitText` -- Unit test (using Microsoft::VisualStudio::CppUnitTestFramework) to test ToolboxLib
+	* Uses: ToolboxLib
+
 ## Building
 * Open the `open-here.sln" Visual Studio Solution.
 * Select Desired Platform, e.g. "Release, x64".

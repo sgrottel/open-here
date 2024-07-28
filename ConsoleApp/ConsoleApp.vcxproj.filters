@@ -25,6 +25,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md" />
+    <None Include="runtest.ps1" />
   </ItemGroup>
 </Project>
