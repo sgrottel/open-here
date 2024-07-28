@@ -2,20 +2,22 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AssemblyName>OpenHereSettings</AssemblyName>
     <RootNamespace>OpenHere.SettingsApp</RootNamespace>
     <ApplicationIcon>openhere.ico</ApplicationIcon>
     <Platforms>x64;x86</Platforms>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     <Product>OpenHere</Product>
     <Authors>SGrottel</Authors>
     <Description>Open Here Settings App</Description>
-    <Copyright>Copyright 2022, SGrottel</Copyright>
-    <AssemblyVersion>0.4.0.0</AssemblyVersion>
-    <FileVersion>0.4.0.0</FileVersion>
-    <Version>0.4.0.0</Version>
+    <Copyright>Copyright 2022-2024, SGrottel</Copyright>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
+    <Version>1.1.2.0</Version>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 

@@ -169,7 +169,7 @@
     <ResourceCompile Include="ConsoleApp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md" />
+    <None Include="runtest.ps1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FileExplorerDetectorLib\FileExplorerDetectorLib.vcxproj">
