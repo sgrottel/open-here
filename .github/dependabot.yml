@@ -11,8 +11,12 @@ updates:
     open-pull-requests-limit: 10
 
   # projects nugets
-  - package-ecosystem: "nuget"
-    directory: "/ToolboxLib"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+  #
+  #   Dependabot on Nugets in Cpp projects does not work
+  #   It requires "a *.(cs|vb|fs)proj, *.proj to evaluate your .NET dependencies."
+  #
+  # - package-ecosystem: "nuget"
+  #   directory: "/ToolboxLib"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 10
