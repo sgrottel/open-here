@@ -48,7 +48,10 @@ int main()
     for (InstanceInfo const& inst : detector.GetInstances())
     {
         std::wcout << L"i " << inst.GetHWnd() << L" " << inst.GetInstanceType() << L"\n"
-            << L"w " << (inst.IsTopWindow() ? L'T' : L'-') << (inst.IsForegroundWindow() ? L'F' : L'-') << " " << inst.GetZDepth() << L"\n";
+            << L"w " << (inst.IsTopWindow() ? L'T' : L'-') << (inst.IsForegroundWindow() ? L'F' : L'-')
+            << L" " << inst.GetZDepth()
+            << L" " << inst.GetSubOrder()
+            << L"\n";
         for (std::wstring const& s : inst.GetOpenPaths())
         {
             std::wcout << L"p " << s << L"\n";

@@ -38,6 +38,16 @@ void InstanceInfo::SetZDepth(unsigned int z)
 	zDepth = z;
 }
 
+unsigned int InstanceInfo::GetSubOrder() const
+{
+	return subOrder;
+}
+
+void InstanceInfo::SetSubOrder(unsigned int sOrd)
+{
+	subOrder = sOrd;
+}
+
 std::wstring const& InstanceInfo::GetInstanceType() const
 {
 	return instanceType;

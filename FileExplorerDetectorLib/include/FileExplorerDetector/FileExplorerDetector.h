@@ -44,9 +44,6 @@ namespace fileexplorerdetector
 		std::vector<InstanceInfo> const& GetInstances() const;
 
 	private:
-
-		void addWindowsInfo();
-
 		std::shared_ptr<CoInitialize> coInitialize;
 		std::vector<InstanceInfo> instances;
 	};
