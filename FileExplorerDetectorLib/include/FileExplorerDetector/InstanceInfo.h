@@ -33,6 +33,9 @@ namespace fileexplorerdetector
 		unsigned int GetZDepth() const;
 		void SetZDepth(unsigned int z);
 
+		unsigned int GetSubOrder() const;
+		void SetSubOrder(unsigned int sOrd);
+
 		std::wstring const& GetInstanceType() const;
 		void SetInstanceType(std::wstring const& type);
 
@@ -51,6 +54,7 @@ namespace fileexplorerdetector
 	private:
 		intptr_t hWnd = 0;
 		unsigned int zDepth = 0;
+		unsigned int subOrder = 0;
 		std::wstring instanceType;
 		std::vector<std::wstring> openPaths;
 		std::vector<std::wstring> selectedItems;

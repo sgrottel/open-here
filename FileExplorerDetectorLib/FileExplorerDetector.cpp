@@ -39,6 +39,47 @@ namespace {
 		}
 	}
 
+	void addWindowsInfo(std::vector<InstanceInfo>& newInstances)
+	{
+		HWND fgW = GetForegroundWindow();
+		HWND tW = GetTopWindow(NULL);
+		for (auto& info : newInstances) {
+			HWND hwnd = reinterpret_cast<HWND>(info.GetHWnd());
+
+			info.SetIsForegroundWindow(fgW == hwnd);
+			info.SetIsTopWindow(tW == hwnd);
+		}
+
+		// Fill in window z orders
+		struct context {
+			size_t toFind;
+			std::vector<InstanceInfo>& list;
+			unsigned int z;
+		} ctxt{
+			newInstances.size(),
+			newInstances,
+			0u
+		};
+
+		EnumWindows([](HWND hwnd, LPARAM list) -> BOOL {
+			auto ctxt = reinterpret_cast<context*>(list);
+			for (auto& info : ctxt->list) {
+				if (info.GetHWnd() == reinterpret_cast<intptr_t>(hwnd)) {
+					info.SetZDepth(ctxt->z);
+					ctxt->toFind--;
+					if (ctxt->toFind == 0) {
+						return false; // found all
+					}
+				}
+			}
+
+			ctxt->z++;
+
+			return true;
+			}, reinterpret_cast<LPARAM>(&ctxt));
+
+	}
+
 }
 
 int FileExplorerDetector::Detect()
@@ -59,7 +100,10 @@ int FileExplorerDetector::Detect()
 		pshWindows->get_Count(&count),
 		"Could not get number of shell windows");
 
-	instances.reserve(count);
+	std::vector<InstanceInfo> newInstances;
+	newInstances.reserve(count);
+	std::vector<std::vector<int>> childPaths;
+	childPaths.reserve(count);
 
 	for (long i = 0; i < count; ++i) {
 		InstanceInfo info;
@@ -81,8 +125,12 @@ int FileExplorerDetector::Detect()
 
 		// Get the window handle.
 		HWND hwnd;
-		pApp->get_HWND(reinterpret_cast<SHANDLE_PTR*>(&hwnd));
-		info.SetHWnd(reinterpret_cast<intptr_t>(hwnd));
+		if (SUCCEEDED(pApp->get_HWND(reinterpret_cast<SHANDLE_PTR*>(&hwnd)))) {
+			info.SetHWnd(reinterpret_cast<intptr_t>(hwnd));
+		} else {
+			hwnd = 0;
+			info.SetHWnd(0);
+		}
 
 		CComQIPtr<IServiceProvider> psp{ pApp };
 		if (!psp) {
@@ -92,6 +140,27 @@ int FileExplorerDetector::Detect()
 		CComPtr<IShellBrowser> pBrowser;
 		if (FAILED(psp->QueryService(SID_STopLevelBrowser, &pBrowser))) {
 			continue; // This window doesn't provide IShellBrowser
+		}
+
+		// check the child-sibling path length to determine which of the multiple tabs in an explorer window is currently selected.
+		std::vector<int> childPath;
+		if (hwnd != 0) {
+			HWND hCWnd;
+			if (SUCCEEDED(pBrowser->GetControlWindow(FCW_STATUS, &hCWnd))) {
+				HWND h = hCWnd;
+				while (h != NULL) {
+					int cnt = 0;
+					HWND s = h;
+					while (s != NULL) {
+						s = GetWindow(s, GW_HWNDPREV);
+						if (s == NULL) break;
+						cnt++;
+					}
+					childPath.push_back(cnt);
+					h = GetParent(h);
+					if (h == hwnd) break;
+				};
+			}
 		}
 
 		CComPtr<IShellView> pShellView;
@@ -131,8 +200,7 @@ int FileExplorerDetector::Detect()
 		}
 
 		LPITEMIDLIST pidl = nullptr;
-		if (SUCCEEDED(pFolder->GetCurFolder(&pidl)))
-		{
+		if (SUCCEEDED(pFolder->GetCurFolder(&pidl))) {
 			std::vector<wchar_t> path(32767, L'\0');
 			if (::SHGetPathFromIDListEx(pidl, path.data(), static_cast<DWORD>(path.size()), 0)) {
 				info.AccessOpenPaths().push_back(path.data());
@@ -140,12 +208,50 @@ int FileExplorerDetector::Detect()
 			::CoTaskMemFree(pidl);
 		}
 
-		instances.push_back(info);
+		newInstances.push_back(info);
+		childPaths.push_back(childPath);
 	}
 
-	addWindowsInfo();
+	addWindowsInfo(newInstances);
 
-	std::sort(instances.begin(), instances.end(), [](InstanceInfo const& a, InstanceInfo const& b) { return a.GetZDepth() < b.GetZDepth(); });
+	std::vector<int> order;
+	order.resize(newInstances.size());
+	for (int i = 0; i < order.size(); ++i) order[i] = i;
+
+	std::sort(order.begin(), order.end(), [&](int a, int b) {
+		unsigned int aZ = newInstances[a].GetZDepth();
+		unsigned int bZ = newInstances[b].GetZDepth();
+		if (aZ == bZ) {
+			std::vector<int> aP = childPaths[a];
+			std::vector<int> bP = childPaths[b];
+			while (!aP.empty()) {
+				if (bP.empty()) return false;
+				int aD = aP.back();
+				int bD = bP.back();
+				aP.pop_back();
+				bP.pop_back();
+				if (aD != bD) {
+					return aD < bD;
+				}
+			}
+			return !bP.empty();
+		}
+		return aZ < bZ;
+		});
+
+
+	unsigned int lastZ = 0;
+	unsigned int nextSubOrder = 0;
+	for (int i : order) {
+		instances.push_back(newInstances[i]);
+		unsigned int z = instances.back().GetZDepth();
+		if (lastZ != z) {
+			lastZ = z;
+			nextSubOrder = 0;
+		} else {
+			instances.back().SetSubOrder(++nextSubOrder);
+		}
+	}
 
 	return static_cast<int>(instances.size());
 }
@@ -153,45 +259,4 @@ int FileExplorerDetector::Detect()
 std::vector<InstanceInfo> const& FileExplorerDetector::GetInstances() const
 {
 	return instances;
-}
-
-void FileExplorerDetector::addWindowsInfo()
-{
-	HWND fgW = GetForegroundWindow();
-	HWND tW = GetTopWindow(NULL);
-	for (auto& info : instances) {
-		HWND hwnd = reinterpret_cast<HWND>(info.GetHWnd());
-
-		info.SetIsForegroundWindow(fgW == hwnd);
-		info.SetIsTopWindow(tW == hwnd);
-	}
-
-	// Fill in window z orders
-	struct context {
-		size_t toFind;
-		std::vector<InstanceInfo>& list;
-		unsigned int z;
-	} ctxt{
-		instances.size(),
-		instances,
-		0u
-	};
-
-	EnumWindows([](HWND hwnd, LPARAM list) -> BOOL {
-		auto ctxt = reinterpret_cast<context*>(list);
-		for (auto& info : ctxt->list) {
-			if (info.GetHWnd() == reinterpret_cast<intptr_t>(hwnd)) {
-				info.SetZDepth(ctxt->z);
-				ctxt->toFind--;
-				if (ctxt->toFind == 0) {
-					return false; // found all
-				}
-			}
-		}
-
-		ctxt->z++;
-
-		return true;
-		}, reinterpret_cast<LPARAM>(&ctxt));
-
 }
