@@ -80,6 +80,9 @@ ToolInfo::StartConfig const* ToolRunner::SelectStartConfig(ToolInfo const& tool,
 		{
 			if (!std::filesystem::is_regular_file(sc->executable))
 				continue;
+
+			if (!sc->workingDir.empty() && !std::filesystem::is_directory(sc->workingDir))
+				continue;
 		}
 
 		// all checks succeeded
