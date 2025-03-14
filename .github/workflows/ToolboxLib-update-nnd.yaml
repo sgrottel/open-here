@@ -27,7 +27,6 @@ jobs:
     - name: Update action
       shell: pwsh
       run: |
-        $line = ([string[]](Get-Content -Path "foo-02/i-info.txt"))[0]
         .\nnd\Set-Project.ps1 -projFile "p\ToolboxLib\ToolboxLib.vcxproj" -group "open-here" -name "ToolboxLib" -info "https://github.com/sgrottel/open-here"
 
         cd .\nnd
