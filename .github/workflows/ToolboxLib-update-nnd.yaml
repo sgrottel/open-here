@@ -2,7 +2,7 @@ name: ToolboxLib Update Native-Nuget-Dependabotwrapper
 
 on:
   push:
-    branches: [ "main", "integrate-native-nuget-scanning-project" ]
+    branches: [ "main" ]
     paths:
       - ToolboxLib/packages.config
   workflow_dispatch:
