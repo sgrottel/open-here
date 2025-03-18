@@ -20,6 +20,11 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <cwctype>
+
+#define VC_EXTRALEAN
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 void PrintDetectorReport(openhere::fileexplorerdetector::FileExplorerDetector const& detector)
 {
@@ -45,11 +50,72 @@ void PrintDetectorReport(openhere::fileexplorerdetector::FileExplorerDetector co
     std::wcout << L"e " << std::endl;
 }
 
+std::wstring EscapeIfNeeded(std::wstring s)
+{
+    bool hasQuot = std::find(s.begin(), s.end(), L'"') != s.end();
+    bool hasSpace = std::find_if(s.begin(), s.end(), iswspace) != s.end();
+    if (!hasQuot && !hasSpace)
+    {
+        return s;
+    }
+
+    std::wstring t;
+    t.reserve(s.size() + 2);
+    t.push_back(L'\"');
+    for (wchar_t c : s)
+    {
+        if (c == L'\"')
+        {
+            t.push_back(L'\\');
+        }
+        t.push_back(c);
+    }
+    t.push_back(L'\"');
+
+    return t;
+}
+
 void StartHere(CmdLine const& cmdLine, openhere::fileexplorerdetector::FileExplorerDetector const& detector)
 {
+    std::wstring cmd{ EscapeIfNeeded(cmdLine.path) };
+    for (std::wstring const& a : cmdLine.addArgs)
+    {
+        cmd += L" ";
+        cmd += EscapeIfNeeded(a);
+    }
 
-    std::cerr << "Not implemented!" << std::endl;
+    wchar_t const* curDir = NULL;
+    auto& i = detector.GetInstances();
+    if (!i.empty())
+    {
+        auto& p = i[0].GetOpenPaths();
+        if (!p.empty())
+        {
+            curDir = p[0].c_str();
+        }
+    }
 
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    BOOL succ = CreateProcessW(
+        NULL, // app; use NULL and specify app as first arg in `cmdline` to trigger search behavior
+        const_cast<wchar_t*>(cmd.c_str()), // cmdline
+        NULL, // procAttr
+        NULL, // threadAttr
+        FALSE, // inheritHandles
+        0, // creationFlags
+        NULL, // env
+        curDir, // curDir
+        &si, // startupInfo
+        &pi); // processInfo
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 }
 
 int wmain(int argc, wchar_t* argv[])
