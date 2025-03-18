@@ -81,8 +81,22 @@ ToolInfo::StartConfig const* ToolRunner::SelectStartConfig(ToolInfo const& tool,
 			if (!std::filesystem::is_regular_file(sc->executable))
 				continue;
 
-			if (!sc->workingDir.empty() && !std::filesystem::is_directory(sc->workingDir))
-				continue;
+			if (!sc->workingDir.empty())
+			{
+				std::wstring wd;
+				for (wchar_t w : sc->workingDir)
+				{
+					if (iswspace(w)) continue;
+					wd.push_back(towlower(w));
+				}
+
+				if (wd == L"${path}")
+				{
+					// special case, this is acceptable
+				}
+				else if (!std::filesystem::is_directory(sc->workingDir))
+					continue;
+			}
 		}
 
 		// all checks succeeded

@@ -1,9 +1,10 @@
-name: ToolboxLib Update Native-Nuget-Dependabotwrapper
+name: Update Native-Nuget-Dependabotwrapper
 
 on:
   push:
     branches: [ "main" ]
     paths:
+      - ConsoleApp/packages.config
       - ToolboxLib/packages.config
   workflow_dispatch:
 
@@ -27,11 +28,12 @@ jobs:
     - name: Update action
       shell: pwsh
       run: |
+        .\nnd\Set-Project.ps1 -projFile "p\ConsoleApp\ConsoleApp.vcxproj" -group "open-here" -name "ConsoleApp" -info "https://github.com/sgrottel/open-here"
         .\nnd\Set-Project.ps1 -projFile "p\ToolboxLib\ToolboxLib.vcxproj" -group "open-here" -name "ToolboxLib" -info "https://github.com/sgrottel/open-here"
 
         cd .\nnd
         git config --global user.name 'DopinderBot'
         git config --global user.email 'DopinderBot-noreply@sgrottel.de'
-        git commit -am "Updated open-here ToolboxLib"
+        git commit -am "Updated open-here"
         git push
         cd ..
