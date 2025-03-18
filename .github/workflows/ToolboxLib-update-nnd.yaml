@@ -34,6 +34,7 @@ jobs:
         cd .\nnd
         git config --global user.name 'DopinderBot'
         git config --global user.email 'DopinderBot-noreply@sgrottel.de'
+        git add open-here\*
         git commit -am "Updated open-here"
         git push
         cd ..
