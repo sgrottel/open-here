@@ -163,12 +163,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CmdLine.cpp" />
     <ClCompile Include="ConsoleApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ConsoleApp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="runtest.ps1" />
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +178,17 @@
       <Project>{0cad229c-2424-4661-844c-a494132d5af3}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CmdLine.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\SGrottel.yaclap.0.3.2\build\native\SGrottel.yaclap.targets" Condition="Exists('..\packages\SGrottel.yaclap.0.3.2\build\native\SGrottel.yaclap.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SGrottel.yaclap.0.3.2\build\native\SGrottel.yaclap.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SGrottel.yaclap.0.3.2\build\native\SGrottel.yaclap.targets'))" />
+  </Target>
 </Project>

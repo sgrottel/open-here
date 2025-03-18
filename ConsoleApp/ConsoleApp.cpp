@@ -1,5 +1,5 @@
 // Open Here
-// Copyright 2022 SGrottel (https://www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,15 +14,57 @@
 // limitations under the License.
 //
 
+#include "CmdLine.h"
+
 #include "FileExplorerDetector/FileExplorerDetector.h"
 
 #include <stdexcept>
 #include <iostream>
 
-int main()
+void PrintDetectorReport(openhere::fileexplorerdetector::FileExplorerDetector const& detector)
+{
+    using openhere::fileexplorerdetector::InstanceInfo;
+
+    for (InstanceInfo const& inst : detector.GetInstances())
+    {
+        std::wcout << L"i " << inst.GetHWnd() << L" " << inst.GetInstanceType() << L"\n"
+            << L"w " << (inst.IsTopWindow() ? L'T' : L'-') << (inst.IsForegroundWindow() ? L'F' : L'-')
+            << L" " << inst.GetZDepth()
+            << L" " << inst.GetSubOrder()
+            << L"\n";
+        for (std::wstring const& s : inst.GetOpenPaths())
+        {
+            std::wcout << L"p " << s << L"\n";
+        }
+        for (std::wstring const& s : inst.GetSelectedItems())
+        {
+            std::wcout << L"s " << s << L"\n";
+        }
+    }
+
+    std::wcout << L"e " << std::endl;
+}
+
+void StartHere(CmdLine const& cmdLine, openhere::fileexplorerdetector::FileExplorerDetector const& detector)
+{
+
+    std::cerr << "Not implemented!" << std::endl;
+
+}
+
+int wmain(int argc, wchar_t* argv[])
 {
     using openhere::fileexplorerdetector::FileExplorerDetector;
-    using openhere::fileexplorerdetector::InstanceInfo;
+
+    CmdLine cmdLine;
+    if (!cmdLine.Parse(argc, argv))
+    {
+        return 0;
+    }
+    if (cmdLine.command == Command::Error)
+    {
+        return -1;
+    }
 
     FileExplorerDetector detector;
 
@@ -45,24 +87,20 @@ int main()
         return -1;
     }
 
-    for (InstanceInfo const& inst : detector.GetInstances())
+    switch (cmdLine.command)
     {
-        std::wcout << L"i " << inst.GetHWnd() << L" " << inst.GetInstanceType() << L"\n"
-            << L"w " << (inst.IsTopWindow() ? L'T' : L'-') << (inst.IsForegroundWindow() ? L'F' : L'-')
-            << L" " << inst.GetZDepth()
-            << L" " << inst.GetSubOrder()
-            << L"\n";
-        for (std::wstring const& s : inst.GetOpenPaths())
-        {
-            std::wcout << L"p " << s << L"\n";
-        }
-        for (std::wstring const& s : inst.GetSelectedItems())
-        {
-            std::wcout << L"s " << s << L"\n";
-        }
-    }
+    case Command::Default:
+        PrintDetectorReport(detector);
+        break;
 
-    std::wcout << L"e " << std::endl;
+    case Command::StartHere:
+        StartHere(cmdLine, detector);
+        break;
+
+    default:
+        std::cerr << "Command selected from command line arguments not implemented: " << static_cast<int>(cmdLine.command) << std::endl;
+        return -1;
+    }
 
     return 0;
 }
