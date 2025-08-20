@@ -216,7 +216,7 @@ int FileExplorerDetector::Detect()
 
 	std::vector<int> order;
 	order.resize(newInstances.size());
-	for (int i = 0; i < order.size(); ++i) order[i] = i;
+	for (int i = 0; i < static_cast<int>(order.size()); ++i) order[i] = i;
 
 	std::sort(order.begin(), order.end(), [&](int a, int b) {
 		unsigned int aZ = newInstances[a].GetZDepth();
