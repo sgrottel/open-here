@@ -41,8 +41,25 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
 
-    - name: Setup VSTest Path
-      uses: darenm/Setup-VSTest@v1.3
+    - name: Locate and Setup VSTest
+      shell: powershell
+      run: |
+        # Path to the pre-installed vswhere on GitHub runners
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        # Find the latest Visual Studio instance with Native (C++) or general desktop workload
+        $installDir = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath
+        if (-not $installDir) {
+            # Fallback to general lookup if native desktop workload isn't explicitly flagged
+            $installDir = & $vswhere -latest -products * -property installationPath
+        }
+        if ($installDir) {
+            $vstestPath = Join-Path $installDir "Common7\IDE\CommonExtensions\Microsoft\TestWindow"
+            Write-Host "Found VSTest at: $vstestPath"
+            # Add to GitHub Actions PATH environment variable
+            echo $vstestPath >> $env:GITHUB_PATH
+        } else {
+            throw "Could not find a valid Visual Studio installation."
+        }
 
     - name: Prepare Environment
       shell: pwsh
