@@ -1,5 +1,5 @@
 // Open Here
-// Copyright 2022-2025 SGrottel (https://www.sgrottel.de)
+// Copyright 2022-2026 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 #pragma once
 
 #define OPEN_HERE_VER_MAJOR	1
-#define OPEN_HERE_VER_MINOR	3
-#define OPEN_HERE_VER_PATCH	4
+#define OPEN_HERE_VER_MINOR	4
+#define OPEN_HERE_VER_PATCH	0
 #define OPEN_HERE_VER_BUILD	0
 
-#define OPEN_HERE_VER_YEARSTR	"2022-2025"
+#define OPEN_HERE_VER_YEARSTR	"2022-2026"
